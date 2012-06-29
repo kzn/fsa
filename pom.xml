@@ -50,7 +50,6 @@
 				</executions>
 			</plugin>
 		</plugins>
-		<extensions>
 	</build>
   
  </project>
