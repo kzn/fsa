@@ -49,6 +49,16 @@
 					</execution>
 				</executions>
 			</plugin>
+
+	<plugin>
+		<groupId>com.fasterxml</groupId>
+		<artifactId>maven-stringtemplate-plugin</artifactId>
+		<version>1.0.0</version>
+		<configuration>
+			<inputDir>src/main/stringtemplate</inputDir>
+		</configuration>
+	</plugin>
+			
 		</plugins>
 	</build>
   
