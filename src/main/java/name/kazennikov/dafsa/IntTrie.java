@@ -7,7 +7,7 @@ import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 
 public class IntTrie {
-	int states;
+	int states = 1;
 	TLongIntHashMap trans = new TLongIntHashMap();
 	TIntObjectHashMap<TIntSet> finals = new TIntObjectHashMap<TIntSet>();
 	
@@ -47,10 +47,12 @@ public class IntTrie {
 	
 	public int addSuffix(int state, TIntArrayList seq, int startOffset, int fin) {
 		for(int i =  startOffset; i < seq.size(); i++) {
-			setNext(state, seq.get(i), ++states);
+			int nextState = ++states;
+			setNext(state, seq.get(i), nextState);
+			state = nextState;
 		}
 		
-		addFinal(states, fin);
+		addFinal(state, fin);
 		return states;
 	}
 	
@@ -58,22 +60,24 @@ public class IntTrie {
 		if(seq.isEmpty())
 			return; 
 		
-		
 		int state = 1;
 		int offset = 0;
 		
-		do {
-			int nextState = getNext(state, seq.get(offset));
+		int idx = 0;
+
+		while(idx < seq.size()) {
+			int nextState = getNext(state, seq.get(idx));
 			if(nextState == 0)
 				break;
+
+			idx++;
 			state = nextState;
-			offset++;
-		} while(offset < seq.size());
+		}
 		
-		if(offset == seq.size()) {
+		if(idx == seq.size()) {
 			addFinal(state, finals);
 		} else {
-			addSuffix(state, seq, offset, finals);
+			addSuffix(state, seq, idx, finals);
 		}
 	}
 }
