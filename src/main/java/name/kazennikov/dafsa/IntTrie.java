@@ -1,5 +1,6 @@
 package name.kazennikov.dafsa;
 
+import gnu.trove.iterator.TIntIterator;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.map.hash.TLongIntHashMap;
@@ -80,4 +81,32 @@ public class IntTrie {
 			addSuffix(state, seq, idx, finals);
 		}
 	}
+	
+	
+	public void add(TIntIterator it, int finals) {
+		if(!it.hasNext())
+			return;
+		
+		int state = 1;
+		
+		int currentInput = 0;
+
+		while(it.hasNext()) {
+			currentInput = it.next();
+			
+			int nextState = getNext(state, currentInput);
+			if(nextState == 0) {
+				nextState = ++states;
+				setNext(state, currentInput, nextState);
+			}
+
+			state = nextState;
+		}
+		
+		addFinal(state, finals);
+	}
+
+	
+	
+
 }
