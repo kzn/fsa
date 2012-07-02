@@ -741,7 +741,7 @@ public class IntFSA {
 				while(it.hasNext()) {
 					it.advance();
 					int dest = it.value().getNumber();
-					writer.transition(it.key(), it.value().getNumber());
+					writer.transition(it.key(), dest);
 				}
 			}
 		}
