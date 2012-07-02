@@ -501,7 +501,7 @@ public class LongFSA {
 
 			List<LongFSA.Node> nodes = new ArrayList<LongFSA.Node>();
 
-			for(int i = 0; i != seq.size(); i++) {
+			for(int i = start; i < end; i++) {
 
 				long in = seq.get(i);
 				LongFSA.Node node = makeNode();

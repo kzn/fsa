@@ -504,7 +504,7 @@ public class IntFSA {
 
 			List<IntFSA.Node> nodes = new ArrayList<IntFSA.Node>();
 
-			for(int i = 0; i != seq.size(); i++) {
+			for(int i = start; i < end; i++) {
 
 				int in = seq.get(i);
 				IntFSA.Node node = makeNode();
