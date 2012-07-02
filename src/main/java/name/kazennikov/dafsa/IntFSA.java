@@ -4,8 +4,8 @@ import gnu.trove.iterator.TIntObjectIterator;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
-import gnu.trove.procedure.TIntProcedure;
 import gnu.trove.procedure.TIntObjectProcedure;
+import gnu.trove.procedure.TIntProcedure;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 
@@ -15,10 +15,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
-
-import name.kazennikov.dafsa.IntFSA.Node;
-import name.kazennikov.dafsa.IntFSA.Register;
-import name.kazennikov.dafsa.IntFSA.SimpleNode;
 
 public class IntFSA {
 

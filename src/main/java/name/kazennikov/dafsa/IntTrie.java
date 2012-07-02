@@ -61,9 +61,7 @@ public class IntTrie {
 		if(seq.isEmpty())
 			return; 
 		
-		int state = 1;
-		int offset = 0;
-		
+		int state = 1;		
 		int idx = 0;
 
 		while(idx < seq.size()) {
