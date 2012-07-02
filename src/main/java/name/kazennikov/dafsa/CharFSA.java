@@ -1,12 +1,9 @@
 package name.kazennikov.dafsa;
 
 import gnu.trove.iterator.TCharObjectIterator;
-import gnu.trove.iterator.TIntObjectIterator;
 import gnu.trove.map.hash.TCharObjectHashMap;
-import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
 import gnu.trove.procedure.TCharObjectProcedure;
-import gnu.trove.procedure.TIntObjectProcedure;
 import gnu.trove.procedure.TIntProcedure;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
@@ -14,19 +11,9 @@ import gnu.trove.set.hash.TIntHashSet;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Stack;
-import java.util.TreeMap;
-
-import javax.print.attribute.IntegerSyntax;
-
-import name.kazennikov.dafsa.GenericTrie.Node;
-import name.kazennikov.dafsa.GenericTrie.SimpleNode;
 
 public class CharFSA {
 
@@ -434,7 +421,7 @@ public class CharFSA {
 			if(idx == seq.length()) {
 				addFinal(current, fin);
 			} else {
-				addSuffix(current, seq.subSequence(idx, seq.length()), fin);
+				addSuffix(current, seq, idx, seq.length(), fin);
 			}
 		}
 
@@ -507,12 +494,12 @@ public class CharFSA {
 		 * @param seq sequence to add
 		 * @param fin final state
 		 */
-		protected List<CharFSA.Node> addSuffix(CharFSA.Node n, CharSequence seq, int fin) {
+		protected List<CharFSA.Node> addSuffix(CharFSA.Node n, CharSequence seq, int start, int end, int fin) {
 			CharFSA.Node current = n;
 
 			List<CharFSA.Node> nodes = new ArrayList<CharFSA.Node>();
 
-			for(int i = 0; i != seq.length(); i++) {
+			for(int i = start; i < end; i++) {
 
 				char in = seq.charAt(i);
 				CharFSA.Node node = makeNode();
@@ -639,7 +626,7 @@ public class CharFSA {
 
 			List<CharFSA.Node> nodeList = new ArrayList<CharFSA.Node>(prefix);
 
-			nodeList.addAll(addSuffix(prefix.get(prefix.size() - 1), input.subSequence(prefix.size() - 1, input.length()), fin));
+			nodeList.addAll(addSuffix(prefix.get(prefix.size() - 1), input, prefix.size() - 1, input.length(), fin));
 
 			replaceOrRegister(input, nodeList, stopIdx);
 
@@ -680,15 +667,6 @@ public class CharFSA {
 				idx--;
 			}
 
-		}
-
-		public static List<Character> string2CharList(String s) {
-			List<Character> list = new ArrayList<Character>();
-
-			for(int i = 0; i != s.length(); i++)
-				list.add(s.charAt(i));
-
-			return list;
 		}
 
 		public void toDot(String fileName) throws IOException {
@@ -753,7 +731,7 @@ public class CharFSA {
 				while(it.hasNext()) {
 					it.advance();
 					int dest = it.value().getNumber();
-					writer.transition(it.key(), it.value().getNumber());
+					writer.transition(it.key(), dest);
 				}
 			}
 		}
