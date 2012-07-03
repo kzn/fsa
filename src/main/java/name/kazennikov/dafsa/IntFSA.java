@@ -1,6 +1,7 @@
 package name.kazennikov.dafsa;
 
 import gnu.trove.iterator.TIntObjectIterator;
+import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
@@ -313,13 +314,10 @@ public class IntFSA {
 	}
 
 	/**
-	 * Writer for trie
-	 * @author ant
-	 *
-	 * @param <In> input label type
-	 * @param <Final> final feature type
+	 * Event producer for for IntFSA
+	 * @author Anton Kazennikov
 	 */
-	public interface Writer {
+	public interface Events {
 		/**
 		 * Announce number of states in the trie
 		 * @param states
@@ -495,7 +493,7 @@ public class IntFSA {
 		 * @param seq sequence to add
 		 * @param fin final state
 		 */
-		protected List<IntFSA.Node> addSuffix(IntFSA.Node n, TIntArrayList seq, int start, int end, int fin) {
+		protected List<IntFSA.Node> addSuffix(IntFSA.Node n, TIntList seq, int start, int end, int fin) {
 			IntFSA.Node current = n;
 
 			List<IntFSA.Node> nodes = new ArrayList<IntFSA.Node>();
@@ -569,7 +567,7 @@ public class IntFSA {
 			return node.inbound() > 1;
 		}
 
-		List<IntFSA.Node> commonPrefix(TIntArrayList seq) {
+		List<IntFSA.Node> commonPrefix(TIntList seq) {
 			IntFSA.Node current = start;
 			List<IntFSA.Node> prefix = new ArrayList<IntFSA.Node>();
 			prefix.add(current);
@@ -596,7 +594,7 @@ public class IntFSA {
 			return 0;
 		}
 
-		public void addMinWord(TIntArrayList input, int fin) {
+		public void addMinWord(TIntList input, int fin) {
 			/*
 			 * 1. get common prefix
 			 * 2. find first confluence state in the common prefix
@@ -636,7 +634,7 @@ public class IntFSA {
 		}
 
 
-		private void replaceOrRegister(TIntArrayList input, List<IntFSA.Node> nodeList, int stop) {
+		private void replaceOrRegister(TIntList input, List<IntFSA.Node> nodeList, int stop) {
 			if(nodeList.size() < 2)
 				return;
 
@@ -723,7 +721,7 @@ public class IntFSA {
 			return id;
 		}
 
-		public void write(final IntFSA.Writer writer) throws IOException {
+		public void write(final IntFSA.Events writer) throws IOException {
 			writer.states(nodes.size());
 
 			for(IntFSA.Node node : nodes) {

@@ -1,6 +1,7 @@
 package name.kazennikov.dafsa;
 
 import gnu.trove.iterator.TLongObjectIterator;
+import gnu.trove.list.TLongList;
 import gnu.trove.list.array.TLongArrayList;
 import gnu.trove.map.hash.TLongObjectHashMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
@@ -314,13 +315,11 @@ public class LongFSA {
 	}
 
 	/**
-	 * Writer for trie
+	 * Events producer for LongFSA
 	 * @author ant
 	 *
-	 * @param <In> input label type
-	 * @param <Final> final feature type
 	 */
-	public interface Writer {
+	public interface Events {
 		/**
 		 * Announce number of states in the trie
 		 * @param states
@@ -406,7 +405,7 @@ public class LongFSA {
 		 * @param seq sequence to add
 		 * @param fin final state
 		 */
-		public void add(TLongArrayList seq, int fin) {
+		public void add(TLongList seq, int fin) {
 			LongFSA.Node current = start;
 
 			int idx = 0;
@@ -496,7 +495,7 @@ public class LongFSA {
 		 * @param seq sequence to add
 		 * @param fin final state
 		 */
-		protected List<LongFSA.Node> addSuffix(LongFSA.Node n, TLongArrayList seq, int start, int end, int fin) {
+		protected List<LongFSA.Node> addSuffix(LongFSA.Node n, TLongList seq, int start, int end, int fin) {
 			LongFSA.Node current = n;
 
 			List<LongFSA.Node> nodes = new ArrayList<LongFSA.Node>();
@@ -570,7 +569,7 @@ public class LongFSA {
 			return node.inbound() > 1;
 		}
 
-		List<LongFSA.Node> commonPrefix(TLongArrayList seq) {
+		List<LongFSA.Node> commonPrefix(TLongList seq) {
 			LongFSA.Node current = start;
 			List<LongFSA.Node> prefix = new ArrayList<LongFSA.Node>();
 			prefix.add(current);
@@ -597,7 +596,7 @@ public class LongFSA {
 			return 0;
 		}
 
-		public void addMinWord(TLongArrayList input, int fin) {
+		public void addMinWord(TLongList input, int fin) {
 			/*
 			 * 1. get common prefix
 			 * 2. find first confluence state in the common prefix
@@ -637,7 +636,7 @@ public class LongFSA {
 		}
 
 
-		private void replaceOrRegister(TLongArrayList input, List<LongFSA.Node> nodeList, int stop) {
+		private void replaceOrRegister(TLongList input, List<LongFSA.Node> nodeList, int stop) {
 			if(nodeList.size() < 2)
 				return;
 
@@ -715,7 +714,7 @@ public class LongFSA {
 			return id;
 		}
 
-		public void write(final LongFSA.Writer writer) throws IOException {
+		public void write(final LongFSA.Events writer) throws IOException {
 			writer.states(nodes.size());
 
 			for(LongFSA.Node node : nodes) {

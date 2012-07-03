@@ -312,13 +312,10 @@ public class CharFSA {
 	}
 
 	/**
-	 * Writer for trie
-	 * @author ant
-	 *
-	 * @param <In> input label type
-	 * @param <Final> final feature type
+	 * Event producer for FSA
+	 * @author Anton Kazennikov
 	 */
-	public interface Writer {
+	public interface Events {
 		/**
 		 * Announce number of states in the trie
 		 * @param states
@@ -713,7 +710,7 @@ public class CharFSA {
 			return id;
 		}
 
-		public void write(final CharFSA.Writer writer) throws IOException {
+		public void write(final CharFSA.Events writer) throws IOException {
 			writer.states(nodes.size());
 
 			for(CharFSA.Node node : nodes) {
