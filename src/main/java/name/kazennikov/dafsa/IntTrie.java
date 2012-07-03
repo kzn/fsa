@@ -1,5 +1,8 @@
 package name.kazennikov.dafsa;
 
+import java.io.DataInputStream;
+import java.io.IOException;
+
 import gnu.trove.iterator.TIntIterator;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.map.hash.TIntObjectHashMap;
@@ -147,8 +150,43 @@ public class IntTrie {
 		
 		addFinal(state, finals);
 	}
-
 	
+	public void clear() {
+		states = 1;
+		trans.clear();
+		finals.clear();
+	}
 	
+	public static interface Builder<T> extends IntFSA.Events {
+		public T build();
+	}
+	
+	public static class Reader {
+		public static void read(DataInputStream s, Builder<?> builder, int labelSize) throws IOException {
+			int states = s.readInt();
+			
+			builder.state(states);
+			
+			for(int i = 0; i < states; i++) {
+				builder.state(i + 1);
+				// read finals
+				int finCount = s.readInt();
+				builder.finals(finCount);
+				for(int j = 0; j < finCount; j++) {
+					builder.stateFinal(s.readInt());
+				}
+				
+				int transCount = s.readInt();
+				builder.transitions(transCount);
+				for(int j = 0; j < transCount; j++) {
+					int label = labelSize == 2? s.readChar() : s.readInt();
+					int dest = s.readInt();
+					builder.transition(label, dest);
+				}
+				
+			}
+		}
+		
+	}
 
 }
