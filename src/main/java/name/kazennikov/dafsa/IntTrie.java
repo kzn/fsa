@@ -161,14 +161,57 @@ public class IntTrie {
 		public T build();
 	}
 	
+	
+	public static class SimpleBuilder implements Builder<IntTrie> {
+		IntTrie fsa = null;
+		int current = 0;
+
+		@Override
+		public void states(int states) throws IOException {
+			fsa = new IntTrie();
+			fsa.states = states;
+		}
+
+		@Override
+		public void state(int state) throws IOException {
+			current = state;
+			
+		}
+
+		@Override
+		public void finals(int n) throws IOException {
+		}
+
+		@Override
+		public void stateFinal(int fin) throws IOException {
+			fsa.addFinal(current, fin);
+			
+		}
+
+		@Override
+		public void transitions(int n) throws IOException {
+		}
+
+		@Override
+		public void transition(int input, int dest) throws IOException {
+			fsa.setNext(current, input, dest);
+		}
+
+		@Override
+		public IntTrie build() {
+			return fsa;
+		}
+		
+	}
 	public static class Reader {
 		public static void read(DataInputStream s, Builder<?> builder, int labelSize) throws IOException {
 			int states = s.readInt();
 			
-			builder.state(states);
+			builder.states(states);
 			
 			for(int i = 0; i < states; i++) {
 				builder.state(i + 1);
+				int stateNum = s.readInt();
 				// read finals
 				int finCount = s.readInt();
 				builder.finals(finCount);
@@ -179,7 +222,7 @@ public class IntTrie {
 				int transCount = s.readInt();
 				builder.transitions(transCount);
 				for(int j = 0; j < transCount; j++) {
-					int label = labelSize == 2? s.readChar() : s.readInt();
+					int label = s.readInt();
 					int dest = s.readInt();
 					builder.transition(label, dest);
 				}
