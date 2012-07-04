@@ -5,6 +5,7 @@ import java.io.IOException;
 
 import gnu.trove.iterator.TIntIterator;
 import gnu.trove.list.array.TIntArrayList;
+import gnu.trove.list.array.TLongArrayList;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.map.hash.TLongIntHashMap;
 import gnu.trove.set.TIntSet;
@@ -208,7 +209,7 @@ public class IntTrie {
 			int states = s.readInt();
 			
 			builder.states(states);
-			
+			TLongArrayList trans = new TLongArrayList();
 			for(int i = 0; i < states; i++) {
 				builder.state(i + 1);
 				int stateNum = s.readInt();
@@ -221,10 +222,16 @@ public class IntTrie {
 				
 				int transCount = s.readInt();
 				builder.transitions(transCount);
+				trans.clear();
 				for(int j = 0; j < transCount; j++) {
 					int label = s.readInt();
 					int dest = s.readInt();
-					builder.transition(label, dest);
+					trans.add( (((long) label) << 32) + dest);
+				}
+				
+				trans.sort();
+				for(int j = 0; j < transCount; j++) {
+					builder.transition((int)(trans.get(j) >> 32), (int)(trans.get(j) & 0xFFFFFFFFL));
 				}
 				
 			}

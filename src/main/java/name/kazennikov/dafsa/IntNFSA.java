@@ -141,8 +141,8 @@ public class IntNFSA {
 
 		@Override
 		public void transition(int input, int dest) throws IOException {
-			char out = (char)( input >> 16);
-			char in = (char) (input & 0xffff);
+			char in = (char)( input >> 16);
+			char out = (char) (input & 0xffff);
 			nfsa.addTransition(state, in, out, dest);
 		}
 
