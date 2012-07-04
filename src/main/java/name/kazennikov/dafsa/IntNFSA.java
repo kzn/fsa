@@ -28,12 +28,13 @@ public class IntNFSA {
 
 
 	public void addTransition(int srcState, char input, char output, int destState) {
-		stateHash.adjustOrPutValue(key(srcState, input), 1, ((long)outChars.size() << 32) + 1);
+		long key = key(srcState, input);
+		stateHash.adjustOrPutValue(key, 1, ((long)outChars.size() << 32) + 1);
 		outChars.add(output);
 		nextStates.add(destState);
 	}
 	
-	long key(int state, char input){
+	long key(int state, int input){
 		return ((long)input << 32) + state;
 	}
 	
@@ -63,25 +64,47 @@ public class IntNFSA {
 		stateFinals.add(fin);
 	}
 	
-	public long getKey(int srcState, int label) {
-		long key = srcState;
-		key <<= 32;
-		key += label;
-		return key;
-	}
+//	public long getKey(int srcState, int label) {
+//		long key = srcState;
+//		key <<= 32;
+//		key += label;
+//		return key;
+//	}
 	
-	public char getInputLabel(long key) {
-		return (char)(key & 0xffffL);
-	}
-	
-	public char getOutputLabel(long key) {
-		return (char)( (key & 0xffffffffL) >>> 16);
-	}
+//	public char getInputLabel(long key) {
+//		return (char)(key & 0xffffL);
+//	}
+//	
+//	public char getOutputLabel(long key) {
+//		return (char)( (key & 0xffffffffL) >>> 16);
+//	}
 
 	
 	public int getState(long key) {
 		return (int)(key >>> 32);
 	}
+	
+	public long getTransitionsInfo(int state, int in) {
+		return stateHash.get(key(state, in));
+	}
+	
+	public int getTransitionsStart(long key) {
+		return (int)(key >>> 32);
+	}
+	
+	public int getTransitionsLength(long key) {
+		return (int)(key & 0xFFFFFFFFL);
+	}
+	
+	public int getTransitionOut(int index) {
+		return outChars.get(index);
+	}
+	
+	public int getTransitionNext(int index) {
+		return nextStates.get(index);
+	}
+
+
 
 	
 	
@@ -118,8 +141,8 @@ public class IntNFSA {
 
 		@Override
 		public void transition(int input, int dest) throws IOException {
-			char in = (char)( input >> 16);
-			char out = (char) (input & 0xffff);
+			char out = (char)( input >> 16);
+			char in = (char) (input & 0xffff);
 			nfsa.addTransition(state, in, out, dest);
 		}
 
