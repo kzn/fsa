@@ -236,7 +236,6 @@ public class IntNFSA {
 			TIntSet fin = getFinals(state);
 
 				if(fin != null && !fin.isEmpty()) {
-					System.out.printf("state %d: ", state);
 					parseProcessor.parse(s, sb, startIndex, currentIndex, fin);
 				}
 				
