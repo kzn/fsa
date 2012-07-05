@@ -17,9 +17,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
 
-import name.kazennikov.dafsa.CharFSA.DotFormatter;
-import name.kazennikov.dafsa.CharFSA.Events;
-
 public class IntFSA {
 
 	public interface Node {

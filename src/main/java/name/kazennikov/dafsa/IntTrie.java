@@ -1,8 +1,5 @@
 package name.kazennikov.dafsa;
 
-import java.io.DataInputStream;
-import java.io.IOException;
-
 import gnu.trove.iterator.TIntIterator;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.list.array.TLongArrayList;
@@ -10,6 +7,9 @@ import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.map.hash.TLongIntHashMap;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
+
+import java.io.DataInputStream;
+import java.io.IOException;
 
 /**
  * Hash-based trie for int-length labels. Uses smaller memory footprint than {@link CharFSA}
@@ -259,8 +259,8 @@ public class IntTrie {
 			builder.states(states);
 			TLongArrayList trans = new TLongArrayList();
 			for(int i = 0; i < states; i++) {
-				builder.state(i + 1);
 				int stateNum = s.readInt();
+				builder.state(stateNum);
 				// read finals
 				int finCount = s.readInt();
 				builder.finals(finCount);
