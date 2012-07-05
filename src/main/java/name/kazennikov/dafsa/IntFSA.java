@@ -17,6 +17,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
 
+import name.kazennikov.dafsa.CharFSA.DotFormatter;
+import name.kazennikov.dafsa.CharFSA.Events;
+
 public class IntFSA {
 
 	public interface Node {
@@ -318,6 +321,16 @@ public class IntFSA {
 	 * @author Anton Kazennikov
 	 */
 	public interface Events {
+		
+		public void startState();
+		public void endState();
+		
+		public void startFinals();
+		public void endFinals();
+		
+		public void startTransitions();
+		public void endTransitions();
+
 		/**
 		 * Announce number of states in the trie
 		 * @param states
@@ -676,35 +689,90 @@ public class IntFSA {
 
 			return list;
 		}
-
-		public void toDot(String fileName) throws IOException {
-			final PrintWriter pw = new PrintWriter(fileName);
-
-			pw.println("digraph finite_state_machine {");
-			pw.println("rankdir=LR;");
-			pw.println("node [shape=circle]");
-
-			for(IntFSA.Node n : nodes) {
-				final int src = n.getNumber();
-
-				if(n.isFinal()) {
-					pw.printf("%d [shape=doublecircle, label=\"%d %s\"];%n", src, src, n.getFinal());
-				}
-
-				n.next().forEachEntry(new TIntObjectProcedure<IntFSA.Node>() {
-					@Override
-					public boolean execute(int input, IntFSA.Node next) {
-						int dest = next.getNumber();
-						pw.printf("%d -> %d [label=\"%s\"];%n", src, dest, input);
-
-						return true;
-					}
-				});
+		
+		public static class FSADotFormatter implements Events {
+			PrintWriter pw;
+			int currentState = 0;
+			TIntArrayList finals = new TIntArrayList(10);
+			
+			public FSADotFormatter(PrintWriter pw) {
+				this.pw = pw;
 			}
 
-			pw.println("}");
-			pw.close();
+			@Override
+			public void states(int states) throws IOException {
+				pw.println("digraph finite_state_machine {");
+				pw.println("rankdir=LR;");
+				pw.println("node [shape=circle]");
+			}
+
+			@Override
+			public void state(int state) throws IOException {
+				currentState = state;
+			}
+
+			@Override
+			public void finals(int n) throws IOException {
+				finals.clear();
+			}
+
+			@Override
+			public void stateFinal(int fin) throws IOException {
+				finals.add(fin);
+			}
+
+			@Override
+			public void transitions(int n) throws IOException {
+			}
+
+			@Override
+			public void transition(int input, int dest) throws IOException {
+				pw.printf("%d -> %d [label=\"%s\"];%n", currentState, dest, input);
+			}
+
+			@Override
+			public void startState() {
+			}
+
+			@Override
+			public void endState() {
+			}
+
+			@Override
+			public void startFinals() {
+			}
+
+			@Override
+			public void endFinals() {
+				pw.printf("%d [shape=doublecircle, label=\"%d %s\"];%n", currentState, currentState, finals);
+			}
+
+			@Override
+			public void startTransitions() {
+			}
+
+			@Override
+			public void endTransitions() {
+			}
 		}
+		
+		public static class FSTDotFormatter extends FSADotFormatter {
+
+			public FSTDotFormatter(PrintWriter pw) {
+				super(pw);
+			}
+			
+			@Override
+			public void transition(int input, int dest) throws IOException {
+				char in = (char)( input >> 16);
+				char out = (char) (input & 0xFFFF);
+					
+				pw.printf("%d -> %d [label=\"%s:%s\"];%n", currentState, dest, in, out);
+			}
+
+			
+		}
+
 
 		public IntFSA.Node getNode(int index) {
 			return nodes.get(index);
@@ -725,13 +793,17 @@ public class IntFSA {
 			writer.states(nodes.size());
 
 			for(IntFSA.Node node : nodes) {
+				writer.startState();
 				writer.state(node.getNumber());
 
+				writer.startFinals();
 				writer.finals(node.getFinal().size());
 				for(int f : node.getFinal().toArray()) {
 					writer.stateFinal(f);
 				}
-
+				writer.endFinals();
+				
+				writer.startTransitions();
 				writer.transitions(node.next().size());
 				
 				TIntObjectIterator<IntFSA.Node> it = node.next().iterator();
@@ -741,6 +813,9 @@ public class IntFSA {
 					int dest = it.value().getNumber();
 					writer.transition(it.key(), dest);
 				}
+				writer.endTransitions();
+				writer.endState();
 			}
+			
 		}
 }

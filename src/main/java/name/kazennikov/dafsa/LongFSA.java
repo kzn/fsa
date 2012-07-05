@@ -320,6 +320,16 @@ public class LongFSA {
 	 *
 	 */
 	public interface Events {
+		
+		public void startState();
+		public void endState();
+		
+		public void startFinals();
+		public void endFinals();
+		
+		public void startTransitions();
+		public void endTransitions();
+		
 		/**
 		 * Announce number of states in the trie
 		 * @param states
@@ -718,13 +728,17 @@ public class LongFSA {
 			writer.states(nodes.size());
 
 			for(LongFSA.Node node : nodes) {
+				writer.startState();
 				writer.state(node.getNumber());
 
+				writer.startFinals();
 				writer.finals(node.getFinal().size());
 				for(int f : node.getFinal().toArray()) {
 					writer.stateFinal(f);
 				}
+				writer.endFinals();
 
+				writer.startTransitions();
 				writer.transitions(node.next().size());
 				
 				TLongObjectIterator<LongFSA.Node> it = node.next().iterator();
@@ -734,6 +748,9 @@ public class LongFSA {
 					int dest = it.value().getNumber();
 					writer.transition(it.key(), dest);
 				}
+				
+				writer.endTransitions();
+				writer.endState();
 			}
 		}
 }

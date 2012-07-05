@@ -202,6 +202,42 @@ public class IntTrie {
 		public IntTrie build() {
 			return fsa;
 		}
+
+		@Override
+		public void startState() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void endState() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void startFinals() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void endFinals() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void startTransitions() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void endTransitions() {
+			// TODO Auto-generated method stub
+			
+		}
 		
 	}
 	public static class Reader {

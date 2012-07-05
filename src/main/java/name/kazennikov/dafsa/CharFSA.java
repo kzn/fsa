@@ -1,6 +1,7 @@
 package name.kazennikov.dafsa;
 
 import gnu.trove.iterator.TCharObjectIterator;
+import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.map.hash.TCharObjectHashMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
 import gnu.trove.procedure.TCharObjectProcedure;
@@ -312,10 +313,19 @@ public class CharFSA {
 	}
 
 	/**
-	 * Event producer for FSA
+	 * Event producer/consumer for FSA
 	 * @author Anton Kazennikov
 	 */
 	public interface Events {
+		
+		public void startState();
+		public void endState();
+		
+		public void startFinals();
+		public void endFinals();
+		
+		public void startTransitions();
+		public void endTransitions();
 		/**
 		 * Announce number of states in the trie
 		 * @param states
@@ -463,27 +473,6 @@ public class CharFSA {
 
 			return n.getFinal();
 		}
-
-		/*public FC getAll(List<In> seq) {
-		//Set<Final> finals = new HashSet<Final>();
-		Trie.CharFSA.Node n = start;
-
-		for(In in : seq) {
-			finals.addAll(n.getFinal());
-			Trie.Node<In, Final> next = n.getNext(in);
-
-			if(next == null)
-				break;
-
-
-
-			n = next;
-		}
-
-		return finals;
-	}*/
-
-
 
 		/**
 		 * Add suffix to given new state
@@ -665,34 +654,72 @@ public class CharFSA {
 			}
 
 		}
-
-		public void toDot(String fileName) throws IOException {
-			final PrintWriter pw = new PrintWriter(fileName);
-
-			pw.println("digraph finite_state_machine {");
-			pw.println("rankdir=LR;");
-			pw.println("node [shape=circle]");
-
-			for(CharFSA.Node n : nodes) {
-				final int src = n.getNumber();
-
-				if(n.isFinal()) {
-					pw.printf("%d [shape=doublecircle, label=\"%d %s\"];%n", src, src, n.getFinal());
-				}
-
-				n.next().forEachEntry(new TCharObjectProcedure<CharFSA.Node>() {
-					@Override
-					public boolean execute(char input, CharFSA.Node next) {
-						int dest = next.getNumber();
-						pw.printf("%d -> %d [label=\"%s\"];%n", src, dest, input);
-
-						return true;
-					}
-				});
+		
+		public static class DotFormatter implements Events {
+			PrintWriter pw;
+			int currentState = 0;
+			TIntArrayList finals = new TIntArrayList(10);
+			
+			public DotFormatter(PrintWriter pw) {
+				this.pw = pw;
 			}
 
-			pw.println("}");
-			pw.close();
+			@Override
+			public void states(int states) throws IOException {
+			}
+
+			@Override
+			public void state(int state) throws IOException {
+				currentState = state;
+			}
+
+			@Override
+			public void finals(int n) throws IOException {
+				finals.clear();
+			}
+
+			@Override
+			public void stateFinal(int fin) throws IOException {
+				finals.add(fin);
+			}
+
+			@Override
+			public void transitions(int n) throws IOException {
+			}
+
+			@Override
+			public void transition(char input, int dest) throws IOException {
+				pw.printf("%d -> %d [label=\"%s\"];%n", currentState, dest, input);
+			}
+
+			@Override
+			public void startState() {
+				pw.println("digraph finite_state_machine {");
+				pw.println("rankdir=LR;");
+				pw.println("node [shape=circle]");
+			}
+
+			@Override
+			public void endState() {
+				pw.println("}");
+			}
+
+			@Override
+			public void startFinals() {
+			}
+
+			@Override
+			public void endFinals() {
+				pw.printf("%d [shape=doublecircle, label=\"%d %s\"];%n", currentState, currentState, finals);
+			}
+
+			@Override
+			public void startTransitions() {
+			}
+
+			@Override
+			public void endTransitions() {
+			}
 		}
 
 		public CharFSA.Node getNode(int index) {
@@ -714,13 +741,17 @@ public class CharFSA {
 			writer.states(nodes.size());
 
 			for(CharFSA.Node node : nodes) {
+				writer.startState();
 				writer.state(node.getNumber());
 
+				writer.startFinals();
 				writer.finals(node.getFinal().size());
 				for(int f : node.getFinal().toArray()) {
 					writer.stateFinal(f);
 				}
+				writer.endFinals();
 
+				writer.startTransitions();
 				writer.transitions(node.next().size());
 				
 				TCharObjectIterator<CharFSA.Node> it = node.next().iterator();
@@ -730,6 +761,9 @@ public class CharFSA {
 					int dest = it.value().getNumber();
 					writer.transition(it.key(), dest);
 				}
+				writer.endTransitions();
+				
+				writer.endState();
 			}
 		}
 }
