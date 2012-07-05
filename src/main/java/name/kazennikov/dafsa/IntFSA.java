@@ -322,6 +322,9 @@ public class IntFSA {
 	 */
 	public interface Events {
 		
+		public void startStates();
+		public void endStates();
+		
 		public void startState();
 		public void endState();
 		
@@ -701,9 +704,6 @@ public class IntFSA {
 
 			@Override
 			public void states(int states) throws IOException {
-				pw.println("digraph finite_state_machine {");
-				pw.println("rankdir=LR;");
-				pw.println("node [shape=circle]");
 			}
 
 			@Override
@@ -754,6 +754,18 @@ public class IntFSA {
 			@Override
 			public void endTransitions() {
 			}
+
+			@Override
+			public void startStates() {
+				pw.println("digraph finite_state_machine {");
+				pw.println("rankdir=LR;");
+				pw.println("node [shape=circle]");
+			}
+
+			@Override
+			public void endStates() {
+				pw.printf("}");
+			}
 		}
 		
 		public static class FSTDotFormatter extends FSADotFormatter {
@@ -790,6 +802,7 @@ public class IntFSA {
 		}
 
 		public void write(final IntFSA.Events writer) throws IOException {
+			writer.startStates();
 			writer.states(nodes.size());
 
 			for(IntFSA.Node node : nodes) {
@@ -816,6 +829,8 @@ public class IntFSA {
 				writer.endTransitions();
 				writer.endState();
 			}
+			
+			writer.endStates();
 			
 		}
 }

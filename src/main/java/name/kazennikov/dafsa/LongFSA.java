@@ -321,6 +321,9 @@ public class LongFSA {
 	 */
 	public interface Events {
 		
+		public void startStates();
+		public void endStates();
+		
 		public void startState();
 		public void endState();
 		
@@ -725,6 +728,7 @@ public class LongFSA {
 		}
 
 		public void write(final LongFSA.Events writer) throws IOException {
+			writer.startStates();
 			writer.states(nodes.size());
 
 			for(LongFSA.Node node : nodes) {
@@ -752,5 +756,7 @@ public class LongFSA {
 				writer.endTransitions();
 				writer.endState();
 			}
+			
+			writer.endStates();
 		}
 }

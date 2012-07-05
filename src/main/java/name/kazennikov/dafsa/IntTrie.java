@@ -238,6 +238,18 @@ public class IntTrie {
 			// TODO Auto-generated method stub
 			
 		}
+
+		@Override
+		public void startStates() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void endStates() {
+			// TODO Auto-generated method stub
+			
+		}
 		
 	}
 	public static class Reader {

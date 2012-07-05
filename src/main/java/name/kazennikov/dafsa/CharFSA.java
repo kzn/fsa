@@ -317,6 +317,8 @@ public class CharFSA {
 	 * @author Anton Kazennikov
 	 */
 	public interface Events {
+		public void startStates();
+		public void endStates();
 		
 		public void startState();
 		public void endState();
@@ -720,6 +722,18 @@ public class CharFSA {
 			@Override
 			public void endTransitions() {
 			}
+
+			@Override
+			public void startStates() {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void endStates() {
+				// TODO Auto-generated method stub
+				
+			}
 		}
 
 		public CharFSA.Node getNode(int index) {
@@ -738,6 +752,7 @@ public class CharFSA {
 		}
 
 		public void write(final CharFSA.Events writer) throws IOException {
+			writer.startStates();
 			writer.states(nodes.size());
 
 			for(CharFSA.Node node : nodes) {
@@ -765,5 +780,7 @@ public class CharFSA {
 				
 				writer.endState();
 			}
+			
+			writer.endStates();
 		}
 }
