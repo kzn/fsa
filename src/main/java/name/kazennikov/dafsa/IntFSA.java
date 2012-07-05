@@ -742,7 +742,11 @@ public class IntFSA {
 
 			@Override
 			public void endFinals() {
-				pw.printf("%d [shape=doublecircle, label=\"%d %s\"];%n", currentState, currentState, finals);
+				if(!finals.isEmpty()) {
+					pw.printf("%d [shape=doublecircle, label=\"%d %s\"];%n", currentState, currentState, finals);
+				} else {
+					pw.printf("%d [label=\"%d\"];%n", currentState, currentState);
+				}
 			}
 
 			@Override
@@ -776,6 +780,14 @@ public class IntFSA {
 			public void transition(int input, int dest) throws IOException {
 				char in = (char)( input >> 16);
 				char out = (char) (input & 0xFFFF);
+				
+				if(in == 0) {
+					in = '_';
+				}
+				
+				if(out == 0) {
+					out = '_';
+				}
 					
 				pw.printf("%d -> %d [label=\"%s:%s\"];%n", currentState, dest, in, out);
 			}
