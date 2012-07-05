@@ -10,6 +10,7 @@ import java.io.IOException;
 
 
 
+
 public class IntNFSA {
 	TIntObjectHashMap<TIntSet> finals = new TIntObjectHashMap<TIntSet>();
 	
@@ -151,5 +152,69 @@ public class IntNFSA {
 			return nfsa;
 		}
 		
+	}
+
+
+	public class Walker implements CharFSTWalker {
+		
+		protected void walkIterativeInternal(CharSequence s, StringBuilder sb, int startIndex, int endIndex, int currentIndex, 
+				int state, char ch, Processor parseProcessor) {
+			long value = getTransitionsInfo(state, ch);
+			int start = getTransitionsStart(value);
+			int end = start + getTransitionsLength(value);
+			
+			while(start < end) {
+				
+				char outCh = (char) getTransitionOut(start);
+				int nextState = getTransitionNext(start);
+				if(outCh != 0)
+					sb.append(outCh);
+				int nextIndex = currentIndex;
+				// do not jump to next char on null char walk
+				if(ch != 0) {
+					nextIndex = currentIndex != endIndex? currentIndex + 1: endIndex;
+				}
+				walkIterative(s, sb, startIndex, endIndex, nextIndex, nextState, parseProcessor);
+				
+				
+				if(outCh != 0)
+					sb.deleteCharAt(sb.length() - 1);
+
+				start++;
+			}
+		}
+		
+		public void walkIterative(CharSequence s, StringBuilder sb, int startIndex, int endIndex, int currentIndex, 
+				int state, Processor parseProcessor) {
+			TIntSet fin = getFinals(state);
+
+				if(fin != null && !fin.isEmpty()) {
+					System.out.printf("state %d: ", state);
+					parseProcessor.parse(s, sb, startIndex, currentIndex, fin);
+				}
+				
+				char ch = currentIndex < endIndex? s.charAt(currentIndex) : 0;
+								
+				walkIterativeInternal(s, sb, startIndex, endIndex, currentIndex, state, ch, parseProcessor);
+				
+				char toUpper = Character.toUpperCase(ch);
+				if(toUpper != ch) {
+					walkIterativeInternal(s, sb, startIndex, endIndex, currentIndex, state, toUpper, parseProcessor);
+				}
+				
+				// for single-pass morphan on fst only
+				walkIterativeInternal(s, sb, startIndex, endIndex, currentIndex, state, (char)0, parseProcessor);
+		}
+
+
+		@Override
+		public void walk(CharSequence src, int start, int end, Processor proc) {
+			walkIterative(src, new StringBuilder(), start, end, start, 1, proc);
+		}
+		
+	}
+	
+	public CharFSTWalker makeFSTWalker() {
+		return new Walker();
 	}
 }

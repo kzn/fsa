@@ -1,6 +1,7 @@
 package name.kazennikov.dafsa;
 
 import gnu.trove.list.array.TIntArrayList;
+import gnu.trove.set.TIntSet;
 
 
 public class CharTrie extends IntTrie {
@@ -12,5 +13,31 @@ public class CharTrie extends IntTrie {
 		
 		add(l, f);
 		
+	}
+	
+	public class Walker implements CharFSAWalker {
+
+		@Override
+		public void walk(CharSequence src, int start, int end, Processor proc) {
+			int state = 1;
+			
+			for(int i = start; i < end; i++) {
+				TIntSet finals = getFinals(state);
+				if(finals != null && !finals.isEmpty())
+					proc.parse(src, start, i, finals);
+				
+				int nextState = getNext(state, src.charAt(i));
+				
+				if(nextState == 0)
+					return;
+				
+				state = nextState;
+			}
+		}
+		
+	}
+	
+	public CharFSAWalker makeCharWalker() {
+		return new Walker();
 	}
 }
