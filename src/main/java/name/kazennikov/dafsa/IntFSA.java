@@ -53,7 +53,7 @@ public class IntFSA {
 
 		public void reset();
 
-		public TIntObjectHashMap<Node> next();
+		public TIntObjectIterator<Node> next();
 
 		public boolean equiv(Node node);
 
@@ -260,8 +260,8 @@ public class IntFSA {
 		}
 
 		@Override
-		public TIntObjectHashMap<Node> next() {
-			return out;
+		public TIntObjectIterator<Node> next() {
+			return out.iterator();
 		}
 		
 		@Override
@@ -827,9 +827,9 @@ public class IntFSA {
 				writer.endFinals();
 				
 				writer.startTransitions();
-				writer.transitions(node.next().size());
+				writer.transitions(node.outbound());
 				
-				TIntObjectIterator<IntFSA.Node> it = node.next().iterator();
+				TIntObjectIterator<IntFSA.Node> it = node.next();
 				
 				while(it.hasNext()) {
 					it.advance();

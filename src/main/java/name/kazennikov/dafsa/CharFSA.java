@@ -52,7 +52,7 @@ public class CharFSA {
 
 		public void reset();
 
-		public TCharObjectHashMap<Node> next();
+		public TCharObjectIterator<Node> next();
 
 		public boolean equiv(Node node);
 
@@ -259,8 +259,8 @@ public class CharFSA {
 		}
 
 		@Override
-		public TCharObjectHashMap<Node> next() {
-			return out;
+		public TCharObjectIterator<Node> next() {
+			return out.iterator();
 		}
 		
 		@Override
@@ -311,7 +311,10 @@ public class CharFSA {
 		public String toString() {
 			return String.format("state=%d", number);
 		}
+
 	}
+	
+
 
 	/**
 	 * Event producer/consumer for FSA
@@ -768,9 +771,9 @@ public class CharFSA {
 				writer.endFinals();
 
 				writer.startTransitions();
-				writer.transitions(node.next().size());
+				writer.transitions(node.outbound());
 				
-				TCharObjectIterator<CharFSA.Node> it = node.next().iterator();
+				TCharObjectIterator<CharFSA.Node> it = node.next();
 				
 				while(it.hasNext()) {
 					it.advance();

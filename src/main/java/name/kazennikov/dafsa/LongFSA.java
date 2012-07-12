@@ -52,7 +52,7 @@ public class LongFSA {
 
 		public void reset();
 
-		public TLongObjectHashMap<Node> next();
+		public TLongObjectIterator<Node> next();
 
 		public boolean equiv(Node node);
 
@@ -259,8 +259,8 @@ public class LongFSA {
 		}
 
 		@Override
-		public TLongObjectHashMap<Node> next() {
-			return out;
+		public TLongObjectIterator<Node> next() {
+			return out.iterator();
 		}
 		
 		@Override
@@ -682,35 +682,6 @@ public class LongFSA {
 
 		}
 
-		public void toDot(String fileName) throws IOException {
-			final PrintWriter pw = new PrintWriter(fileName);
-
-			pw.println("digraph finite_state_machine {");
-			pw.println("rankdir=LR;");
-			pw.println("node [shape=circle]");
-
-			for(LongFSA.Node n : nodes) {
-				final int src = n.getNumber();
-
-				if(n.isFinal()) {
-					pw.printf("%d [shape=doublecircle, label=\"%d %s\"];%n", src, src, n.getFinal());
-				}
-
-				n.next().forEachEntry(new TLongObjectProcedure<LongFSA.Node>() {
-					@Override
-					public boolean execute(long input, LongFSA.Node next) {
-						int dest = next.getNumber();
-						pw.printf("%d -> %d [label=\"%s\"];%n", src, dest, input);
-
-						return true;
-					}
-				});
-			}
-
-			pw.println("}");
-			pw.close();
-		}
-
 		public LongFSA.Node getNode(int index) {
 			return nodes.get(index);
 		}
@@ -742,9 +713,9 @@ public class LongFSA {
 				writer.endFinals();
 
 				writer.startTransitions();
-				writer.transitions(node.next().size());
+				writer.transitions(node.outbound());
 				
-				TLongObjectIterator<LongFSA.Node> it = node.next().iterator();
+				TLongObjectIterator<LongFSA.Node> it = node.next();
 				
 				while(it.hasNext()) {
 					it.advance();
