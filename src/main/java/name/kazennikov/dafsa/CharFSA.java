@@ -1,6 +1,7 @@
 package name.kazennikov.dafsa;
 
 import gnu.trove.iterator.TCharObjectIterator;
+import gnu.trove.iterator.TIntIterator;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.map.hash.TCharObjectHashMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
@@ -25,7 +26,8 @@ public class CharFSA {
 		public void removeInbound(char input, Node next);
 		public void addInbound(char input, Node next);
 
-		public TIntSet getFinal();
+		public TIntIterator getFinal();
+		public int finalCount();
 		/**
 		 * Add final feature to node
 		 * @param fin final feature
@@ -104,8 +106,13 @@ public class CharFSA {
 		}
 		
 		@Override
-		public TIntSet getFinal() {
-			return fin;//Collections.unmodifiableSet(fin);
+		public TIntIterator getFinal() {
+			return fin.iterator();
+		}
+		
+		@Override
+		public int finalCount() {
+			return fin.size();
 		}
 		
 		
@@ -463,7 +470,7 @@ public class CharFSA {
 		 * @param seq input sequence
 		 * @return set of encountered finals
 		 */
-		public TIntSet get(CharSequence seq) {
+		public TIntIterator get(CharSequence seq) {
 			CharFSA.Node n = start;
 
 			for(int i = 0; i != seq.length(); i++) {
@@ -764,10 +771,14 @@ public class CharFSA {
 				writer.state(node.getNumber());
 
 				writer.startFinals();
-				writer.finals(node.getFinal().size());
-				for(int f : node.getFinal().toArray()) {
-					writer.stateFinal(f);
+				writer.finals(node.finalCount());
+				
+				TIntIterator fit = node.getFinal();
+				
+				while(fit.hasNext()) {
+					writer.stateFinal(fit.next());
 				}
+				
 				writer.endFinals();
 
 				writer.startTransitions();

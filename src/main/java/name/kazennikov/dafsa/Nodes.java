@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import gnu.trove.iterator.TCharObjectIterator;
+import gnu.trove.iterator.TIntIterator;
 import gnu.trove.list.array.TCharArrayList;
 import gnu.trove.procedure.TIntProcedure;
 import gnu.trove.set.TIntSet;
@@ -82,9 +83,16 @@ public class Nodes {
 		}
 		
 		@Override
-		public TIntSet getFinal() {
-			return fin;
+		public TIntIterator getFinal() {
+			return fin.iterator();
 		}
+		
+		@Override
+		public int finalCount() {
+			return fin.size();
+		}
+		
+		
 		
 		
 		@Override
