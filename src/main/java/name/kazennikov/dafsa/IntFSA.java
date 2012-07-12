@@ -4,12 +4,8 @@ import gnu.trove.iterator.TIntIterator;
 import gnu.trove.iterator.TIntObjectIterator;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
-import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
-import gnu.trove.procedure.TIntObjectProcedure;
-import gnu.trove.procedure.TIntProcedure;
 import gnu.trove.set.TIntSet;
-import gnu.trove.set.hash.TIntHashSet;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -19,7 +15,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
 
-public class IntFSA {
+import name.kazennikov.dafsa.CharFSA.Events;
+
+public interface IntFSA {
+
+	public void add(TIntList seq, int fin);
+	public void addMinWord(TIntList seq, int fin);
+	int size();
+	void write(Events events) throws IOException;
+
+	
 
 	public interface Node {
 		public Node getNext(int input);
@@ -64,263 +69,6 @@ public class IntFSA {
 
 	}
 	
-	public static class SimpleNode implements Node {
-		TIntHashSet fin = new TIntHashSet();
-		TIntObjectHashMap<Node> out = new TIntObjectHashMap<IntFSA.Node>();
-
-		int inbound;
-		int number;
-		int hashCode;
-		boolean validHashCode = true;
-		
-		public SimpleNode() {
-			inbound = 0;
-			hashCode = 1;
-		}
-		
-		public void setNumber(int num) {
-			this.number = num;
-		}
-		
-		public int getNumber() {
-			return number;
-		}
-		
-		@Override
-		public Node getNext(int input) {
-			return out.get(input);
-		}
-		@Override
-		public void setNext(int input, Node next) {
-			if(out.containsKey(input)) {
-				out.get(input).removeInbound(input, this);
-			}
-			
-			if(next != null) {
-				out.put(input, next);
-				next.addInbound(input, this);
-			} else {
-				out.remove(input);
-			}
-			
-			validHashCode = false;
-		}
-		
-		@Override
-		public TIntIterator getFinal() {
-			return fin.iterator();//Collections.unmodifiableSet(fin);
-		}
-		
-		@Override
-		public int finalCount() {
-			return fin.size();
-		}
-		
-		
-		@Override
-		public boolean isFinal() {
-			return fin != null && fin.size() > 0;
-		}
-		@Override
-		public int outbound() {
-			return out.size();
-		}
-		@Override
-		public int inbound() {
-			return inbound;
-		}
-
-		@Override
-		public void removeInbound(int input, Node base) {
-			inbound--;
-			
-		}
-
-		@Override
-		public void addInbound(int input, Node base) {
-			inbound++;
-		}
-
-		@Override
-		public boolean addFinal(int fin) {
-			validHashCode = !this.fin.add(fin);
-			return !validHashCode;
-		}
-
-		@Override
-		public boolean removeFinal(int fin) {
-			validHashCode = !this.fin.remove(fin);
-			return !validHashCode;
-		}
-		
-		int hc() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + ((fin == null)? 0 : fin.hashCode());
-
-			if(out == null) {
-				result = prime * result;
-			} else {
-				//result = prime * result + out.size();
-				TIntObjectIterator<Node> it = out.iterator();
-				
-				while(it.hasNext()) {
-					it.advance();
-					result += it.key();
-					result += System.identityHashCode(it.value());
-
-					
-				}
-			}
-			
-			return result;
-		}
-
-		/* (non-Javadoc)
-		 * @see java.lang.Object#hashCode()
-		 */
-		@Override
-		public int hashCode() {
-			if(!validHashCode) {
-				hashCode = hc();
-				validHashCode = true;
-			}
-			
-			return hashCode;
-		}
-
-		/* (non-Javadoc)
-		 * @see java.lang.Object#equals(java.lang.Object)
-		 */
-		@Override
-		public boolean equals(Object obj) {
-			if(this == obj)
-				return true;
-			if(obj == null)
-				return false;
-			if(!(obj instanceof SimpleNode))
-				return false;
-			
-
-			SimpleNode other = (SimpleNode) obj;
-			if(fin == null) {
-				if(other.fin != null)
-					return false;
-			} else if(!fin.equals(other.fin))
-				return false;
-			if(out == null) {
-				if(other.out != null)
-					return false;
-			} else {
-
-				if(out.size() != other.out.size())
-					return false;
-				
-				TIntObjectIterator<Node> 
-					it1 = out.iterator();
-				
-				while(it1.hasNext()) {
-					it1.advance();
-					if(other.getNext(it1.key()) != it1.value())
-						return false;
-				}
-			}
-			
-			return true;
-		}
-
-		@Override
-		public SimpleNode makeNode() {
-			return new SimpleNode();
-		}
-		
-		/*@Override
-		public SimpleNode<In, FC, Final> makeNode() {
-			return new SimpleNode<In, Final>();
-		}*/
-
-		@Override
-		public SimpleNode cloneNode() {
-			final SimpleNode node = makeNode();
-			
-			node.fin.addAll(this.fin);
-			
-			out.forEachEntry(new TIntObjectProcedure<Node>() {
-
-				@Override
-				public boolean execute(int key, Node value) {
-					node.setNext(key, value);
-					return true;
-				}
-			});
-			
-			return node;
-		}
-
-		@Override
-		public void reset() {
-			fin.clear();
-			
-			for(int ch : out.keys()) {
-				setNext(ch, null);
-			}
-		}
-
-		@Override
-		public TIntObjectIterator<Node> next() {
-			return out.iterator();
-		}
-		
-		@Override
-		public boolean equiv(Node node) {
-			if(!node.getFinal().equals(fin))
-				return false;
-			
-			TIntObjectIterator<Node> it = out.iterator();
-			while(it.hasNext()) {
-				it.advance();
-				
-				Node n = node.getNext(it.key());
-				if(n == null)
-					return false;
-				
-				if(!it.value().equiv(n))
-					return false;
-			}
-			
-			return true;
-			
-		}
-
-		@Override
-		public Node assign(final Node node) {
-			this.fin.forEach(new TIntProcedure() {
-				
-				@Override
-				public boolean execute(int value) {
-					node.addFinal(value);
-					return true;
-				}
-			});
-			
-			this.out.forEachEntry(new TIntObjectProcedure<Node>() {
-
-				@Override
-				public boolean execute(int a, Node b) {
-					node.setNext(a, b);
-					return true;
-				}
-			});
-
-			return node;
-		}
-		
-		@Override
-		public String toString() {
-			return String.format("state=%d", number);
-		}
-	}
-
 	/**
 	 * Event producer for for IntFSA
 	 * @author Anton Kazennikov
@@ -377,6 +125,8 @@ public class IntFSA {
 		public void transition(int input, int dest) throws IOException;
 	}
 
+	
+	public static class Simple implements IntFSA {
 
 		IntFSA.Node start;
 		List<IntFSA.Node> nodes = new ArrayList<IntFSA.Node>();
@@ -412,7 +162,7 @@ public class IntFSA {
 
 		}
 
-		public IntFSA(IntFSA.Node start) {
+		public Simple(IntFSA.Node start) {
 			this.start = start;
 			nodes.add(start);
 			start.setNumber(nodes.size());
@@ -424,7 +174,7 @@ public class IntFSA {
 		 * @param seq sequence to add
 		 * @param fin final state
 		 */
-		public void add(TIntArrayList seq, int fin) {
+		public void add(TIntList seq, int fin) {
 			IntFSA.Node current = start;
 
 			int idx = 0;
@@ -941,5 +691,6 @@ public class IntFSA {
 				
 			}
 		}
+	}
 
 }

@@ -2,6 +2,7 @@ package name.kazennikov.dafsa;
 
 import gnu.trove.iterator.TIntIterator;
 import gnu.trove.iterator.TLongObjectIterator;
+import gnu.trove.list.TIntList;
 import gnu.trove.list.TLongList;
 import gnu.trove.map.hash.TLongObjectHashMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
@@ -16,8 +17,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
 
+import name.kazennikov.dafsa.IntFSA.Events;
 
-public class LongFSA {
+
+public interface LongFSA {
+	
+	public void add(TLongList seq, int fin);
+	public void addMinWord(TLongList seq, int fin);
+	int size();
+	void write(Events events) throws IOException;
+
 
 	public interface Node {
 		public Node getNext(long input);
@@ -62,264 +71,6 @@ public class LongFSA {
 
 	}
 	
-	public static class SimpleNode implements Node {
-		TIntHashSet fin = new TIntHashSet();
-		TLongObjectHashMap<Node> out = new TLongObjectHashMap<LongFSA.Node>();
-
-		int inbound;
-		int number;
-		int hashCode;
-		boolean validHashCode = true;
-		
-		public SimpleNode() {
-			inbound = 0;
-			hashCode = 1;
-		}
-		
-		public void setNumber(int num) {
-			this.number = num;
-		}
-		
-		public int getNumber() {
-			return number;
-		}
-		
-		@Override
-		public Node getNext(long input) {
-			return out.get(input);
-		}
-		@Override
-		public void setNext(long input, Node next) {
-			if(out.containsKey(input)) {
-				out.get(input).removeInbound(input, this);
-			}
-			
-			if(next != null) {
-				out.put(input, next);
-				next.addInbound(input, this);
-			} else {
-				out.remove(input);
-			}
-			
-			validHashCode = false;
-		}
-		
-		@Override
-		public TIntIterator getFinal() {
-			return fin.iterator();//Collections.unmodifiableSet(fin);
-		}
-		
-		@Override
-		public int finalCount() {
-			return fin.size();
-		}
-		
-		
-		
-		
-		@Override
-		public boolean isFinal() {
-			return fin != null && fin.size() > 0;
-		}
-		@Override
-		public int outbound() {
-			return out.size();
-		}
-		@Override
-		public int inbound() {
-			return inbound;
-		}
-
-		@Override
-		public void removeInbound(long input, Node base) {
-			inbound--;
-			
-		}
-
-		@Override
-		public void addInbound(long input, Node base) {
-			inbound++;
-		}
-
-		@Override
-		public boolean addFinal(int fin) {
-			validHashCode = !this.fin.add(fin);
-			return !validHashCode;
-		}
-
-		@Override
-		public boolean removeFinal(int fin) {
-			validHashCode = !this.fin.remove(fin);
-			return !validHashCode;
-		}
-		
-		int hc() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + ((fin == null)? 0 : fin.hashCode());
-
-			if(out == null) {
-				result = prime * result;
-			} else {
-				//result = prime * result + out.size();
-				TLongObjectIterator<Node> it = out.iterator();
-				
-				while(it.hasNext()) {
-					it.advance();
-					result += it.key();
-					result += System.identityHashCode(it.value());
-
-					
-				}
-			}
-			
-			return result;
-		}
-
-		/* (non-Javadoc)
-		 * @see java.lang.Object#hashCode()
-		 */
-		@Override
-		public int hashCode() {
-			if(!validHashCode) {
-				hashCode = hc();
-				validHashCode = true;
-			}
-			
-			return hashCode;
-		}
-
-		/* (non-Javadoc)
-		 * @see java.lang.Object#equals(java.lang.Object)
-		 */
-		@Override
-		public boolean equals(Object obj) {
-			if(this == obj)
-				return true;
-			if(obj == null)
-				return false;
-			if(!(obj instanceof SimpleNode))
-				return false;
-			
-
-			SimpleNode other = (SimpleNode) obj;
-			if(fin == null) {
-				if(other.fin != null)
-					return false;
-			} else if(!fin.equals(other.fin))
-				return false;
-			if(out == null) {
-				if(other.out != null)
-					return false;
-			} else {
-
-				if(out.size() != other.out.size())
-					return false;
-				
-				TLongObjectIterator<Node> 
-					it1 = out.iterator();
-				
-				while(it1.hasNext()) {
-					it1.advance();
-					if(other.getNext(it1.key()) != it1.value())
-						return false;
-				}
-			}
-			
-			return true;
-		}
-
-		@Override
-		public SimpleNode makeNode() {
-			return new SimpleNode();
-		}
-		
-		/*@Override
-		public SimpleNode<In, FC, Final> makeNode() {
-			return new SimpleNode<In, Final>();
-		}*/
-
-		@Override
-		public SimpleNode cloneNode() {
-			final SimpleNode node = makeNode();
-			
-			node.fin.addAll(this.fin);
-			
-			out.forEachEntry(new TLongObjectProcedure<Node>() {
-
-				@Override
-				public boolean execute(long key, Node value) {
-					node.setNext(key, value);
-					return true;
-				}
-			});
-			
-			return node;
-		}
-
-		@Override
-		public void reset() {
-			fin.clear();
-			
-			for(long ch : out.keys()) {
-				setNext(ch, null);
-			}
-		}
-
-		@Override
-		public TLongObjectIterator<Node> next() {
-			return out.iterator();
-		}
-		
-		@Override
-		public boolean equiv(Node node) {
-			if(!node.getFinal().equals(fin))
-				return false;
-			
-			TLongObjectIterator<Node> it = out.iterator();
-			while(it.hasNext()) {
-				it.advance();
-				
-				Node n = node.getNext(it.key());
-				if(n == null)
-					return false;
-				
-				if(!it.value().equiv(n))
-					return false;
-			}
-			
-			return true;
-			
-		}
-
-		@Override
-		public Node assign(final Node node) {
-			this.fin.forEach(new TIntProcedure() {
-				
-				@Override
-				public boolean execute(int value) {
-					node.addFinal(value);
-					return true;
-				}
-			});
-			
-			this.out.forEachEntry(new TLongObjectProcedure<Node>() {
-
-				@Override
-				public boolean execute(long a, Node b) {
-					node.setNext(a, b);
-					return true;
-				}
-			});
-
-			return node;
-		}
-		
-		@Override
-		public String toString() {
-			return String.format("state=%d", number);
-		}
-	}
 
 	/**
 	 * Events producer for LongFSA
@@ -378,7 +129,7 @@ public class LongFSA {
 		public void transition(long input, int dest) throws IOException;
 	}
 
-
+	public static class Simple {
 		LongFSA.Node start;
 		List<LongFSA.Node> nodes = new ArrayList<LongFSA.Node>();
 
@@ -413,7 +164,7 @@ public class LongFSA {
 
 		}
 
-		public LongFSA(LongFSA.Node start) {
+		public Simple(LongFSA.Node start) {
 			this.start = start;
 			nodes.add(start);
 			start.setNumber(nodes.size());
@@ -717,7 +468,7 @@ public class LongFSA {
 
 				writer.finals(node.finalCount());
 				TIntIterator fit = node.getFinal();
-				
+
 				while(fit.hasNext()) {
 					writer.stateFinal(fit.next());
 				}
@@ -725,19 +476,20 @@ public class LongFSA {
 
 				writer.startTransitions();
 				writer.transitions(node.outbound());
-				
+
 				TLongObjectIterator<LongFSA.Node> it = node.next();
-				
+
 				while(it.hasNext()) {
 					it.advance();
 					int dest = it.value().getNumber();
 					writer.transition(it.key(), dest);
 				}
-				
+
 				writer.endTransitions();
 				writer.endState();
 			}
-			
+
 			writer.endStates();
 		}
+	}
 }
