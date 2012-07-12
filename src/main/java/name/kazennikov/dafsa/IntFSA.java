@@ -448,111 +448,6 @@ public interface IntFSA {
 			return list;
 		}
 		
-		public static class FSADotFormatter implements Events {
-			PrintWriter pw;
-			int currentState = 0;
-			TIntArrayList finals = new TIntArrayList(10);
-			
-			public FSADotFormatter(PrintWriter pw) {
-				this.pw = pw;
-			}
-
-			@Override
-			public void states(int states) throws IOException {
-			}
-
-			@Override
-			public void state(int state) throws IOException {
-				currentState = state;
-			}
-
-			@Override
-			public void finals(int n) throws IOException {
-				finals.clear();
-			}
-
-			@Override
-			public void stateFinal(int fin) throws IOException {
-				finals.add(fin);
-			}
-
-			@Override
-			public void transitions(int n) throws IOException {
-			}
-
-			@Override
-			public void transition(int input, int dest) throws IOException {
-				pw.printf("%d -> %d [label=\"%s\"];%n", currentState, dest, input);
-			}
-
-			@Override
-			public void startState() {
-			}
-
-			@Override
-			public void endState() {
-			}
-
-			@Override
-			public void startFinals() {
-			}
-
-			@Override
-			public void endFinals() {
-				if(!finals.isEmpty()) {
-					pw.printf("%d [shape=doublecircle, label=\"%d %s\"];%n", currentState, currentState, finals);
-				} else {
-					pw.printf("%d [label=\"%d\"];%n", currentState, currentState);
-				}
-			}
-
-			@Override
-			public void startTransitions() {
-			}
-
-			@Override
-			public void endTransitions() {
-			}
-
-			@Override
-			public void startStates() {
-				pw.println("digraph finite_state_machine {");
-				pw.println("rankdir=LR;");
-				pw.println("node [shape=circle]");
-			}
-
-			@Override
-			public void endStates() {
-				pw.printf("}");
-			}
-		}
-		
-		public static class FSTDotFormatter extends FSADotFormatter {
-
-			public FSTDotFormatter(PrintWriter pw) {
-				super(pw);
-			}
-			
-			@Override
-			public void transition(int input, int dest) throws IOException {
-				char in = (char)( input >> 16);
-				char out = (char) (input & 0xFFFF);
-				
-				if(in == 0) {
-					in = '_';
-				}
-				
-				if(out == 0) {
-					out = '_';
-				}
-					
-				pw.printf("%d -> %d [label=\"%s:%s\"];%n", currentState, dest, in, out);
-			}
-
-			
-		}
-
-
 		public IntFSA.Node getNode(int index) {
 			return nodes.get(index);
 		}
@@ -604,93 +499,202 @@ public interface IntFSA {
 			
 		}
 		
-		public static class FileWriter implements IntFSA.Events { 
-			DataOutputStream s;
+	}
+	
+	public static class FileWriter implements IntFSA.Events { 
+		DataOutputStream s;
 
-			public FileWriter(DataOutputStream s) {
-				this.s = s;
-			}
+		public FileWriter(DataOutputStream s) {
+			this.s = s;
+		}
 
-			@Override
-			public void states(int states) throws IOException {
-				s.writeInt(states);
-			}
+		@Override
+		public void states(int states) throws IOException {
+			s.writeInt(states);
+		}
 
-			@Override
-			public void state(int state) throws IOException {
-				s.writeInt(state);
-			}
+		@Override
+		public void state(int state) throws IOException {
+			s.writeInt(state);
+		}
 
-			@Override
-			public void finals(int n) throws IOException {
-				s.writeInt(n);
-			}
+		@Override
+		public void finals(int n) throws IOException {
+			s.writeInt(n);
+		}
 
-			@Override
-			public void stateFinal(int fin) throws IOException {
-				s.writeInt(fin);
-			}
+		@Override
+		public void stateFinal(int fin) throws IOException {
+			s.writeInt(fin);
+		}
 
-			@Override
-			public void transitions(int n) throws IOException {
-				s.writeInt(n);
-				
-			}
+		@Override
+		public void transitions(int n) throws IOException {
+			s.writeInt(n);
+			
+		}
 
-			@Override
-			public void transition(int input, int dest) throws IOException {
-				s.writeInt(input);
-				s.writeInt(dest);
-			}
+		@Override
+		public void transition(int input, int dest) throws IOException {
+			s.writeInt(input);
+			s.writeInt(dest);
+		}
 
-			@Override
-			public void startState() {
-				// TODO Auto-generated method stub
-				
-			}
+		@Override
+		public void startState() {
+			// TODO Auto-generated method stub
+			
+		}
 
-			@Override
-			public void endState() {
-				// TODO Auto-generated method stub
-				
-			}
+		@Override
+		public void endState() {
+			// TODO Auto-generated method stub
+			
+		}
 
-			@Override
-			public void startFinals() {
-				// TODO Auto-generated method stub
-				
-			}
+		@Override
+		public void startFinals() {
+			// TODO Auto-generated method stub
+			
+		}
 
-			@Override
-			public void endFinals() {
-				// TODO Auto-generated method stub
-				
-			}
+		@Override
+		public void endFinals() {
+			// TODO Auto-generated method stub
+			
+		}
 
-			@Override
-			public void startTransitions() {
-				// TODO Auto-generated method stub
-				
-			}
+		@Override
+		public void startTransitions() {
+			// TODO Auto-generated method stub
+			
+		}
 
-			@Override
-			public void endTransitions() {
-				// TODO Auto-generated method stub
-				
-			}
+		@Override
+		public void endTransitions() {
+			// TODO Auto-generated method stub
+			
+		}
 
-			@Override
-			public void startStates() {
-				// TODO Auto-generated method stub
-				
-			}
+		@Override
+		public void startStates() {
+			// TODO Auto-generated method stub
+			
+		}
 
-			@Override
-			public void endStates() {
-				// TODO Auto-generated method stub
-				
-			}
+		@Override
+		public void endStates() {
+			// TODO Auto-generated method stub
+			
 		}
 	}
+
+	
+
+	public static class FSADotFormatter implements Events {
+		PrintWriter pw;
+		int currentState = 0;
+		TIntArrayList finals = new TIntArrayList(10);
+		
+		public FSADotFormatter(PrintWriter pw) {
+			this.pw = pw;
+		}
+
+		@Override
+		public void states(int states) throws IOException {
+		}
+
+		@Override
+		public void state(int state) throws IOException {
+			currentState = state;
+		}
+
+		@Override
+		public void finals(int n) throws IOException {
+			finals.clear();
+		}
+
+		@Override
+		public void stateFinal(int fin) throws IOException {
+			finals.add(fin);
+		}
+
+		@Override
+		public void transitions(int n) throws IOException {
+		}
+
+		@Override
+		public void transition(int input, int dest) throws IOException {
+			pw.printf("%d -> %d [label=\"%s\"];%n", currentState, dest, input);
+		}
+
+		@Override
+		public void startState() {
+		}
+
+		@Override
+		public void endState() {
+		}
+
+		@Override
+		public void startFinals() {
+		}
+
+		@Override
+		public void endFinals() {
+			if(!finals.isEmpty()) {
+				pw.printf("%d [shape=doublecircle, label=\"%d %s\"];%n", currentState, currentState, finals);
+			} else {
+				pw.printf("%d [label=\"%d\"];%n", currentState, currentState);
+			}
+		}
+
+		@Override
+		public void startTransitions() {
+		}
+
+		@Override
+		public void endTransitions() {
+		}
+
+		@Override
+		public void startStates() {
+			pw.println("digraph finite_state_machine {");
+			pw.println("rankdir=LR;");
+			pw.println("node [shape=circle]");
+		}
+
+		@Override
+		public void endStates() {
+			pw.printf("}");
+		}
+	}
+	
+	public static class FSTDotFormatter extends FSADotFormatter {
+
+		public FSTDotFormatter(PrintWriter pw) {
+			super(pw);
+		}
+		
+		@Override
+		public void transition(int input, int dest) throws IOException {
+			char in = (char)( input >> 16);
+			char out = (char) (input & 0xFFFF);
+			
+			if(in == 0) {
+				in = '_';
+			}
+			
+			if(out == 0) {
+				out = '_';
+			}
+				
+			pw.printf("%d -> %d [label=\"%s:%s\"];%n", currentState, dest, in, out);
+		}
+
+		
+	}
+
+
 
 }

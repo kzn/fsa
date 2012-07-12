@@ -413,84 +413,6 @@ public interface CharFSA {
 
 		}
 		
-		public static class DotFormatter implements Events {
-			PrintWriter pw;
-			int currentState = 0;
-			TIntArrayList finals = new TIntArrayList(10);
-			
-			public DotFormatter(PrintWriter pw) {
-				this.pw = pw;
-			}
-
-			@Override
-			public void states(int states) throws IOException {
-			}
-
-			@Override
-			public void state(int state) throws IOException {
-				currentState = state;
-			}
-
-			@Override
-			public void finals(int n) throws IOException {
-				finals.clear();
-			}
-
-			@Override
-			public void stateFinal(int fin) throws IOException {
-				finals.add(fin);
-			}
-
-			@Override
-			public void transitions(int n) throws IOException {
-			}
-
-			@Override
-			public void transition(char input, int dest) throws IOException {
-				pw.printf("%d -> %d [label=\"%s\"];%n", currentState, dest, input);
-			}
-
-			@Override
-			public void startState() {
-				pw.println("digraph finite_state_machine {");
-				pw.println("rankdir=LR;");
-				pw.println("node [shape=circle]");
-			}
-
-			@Override
-			public void endState() {
-				pw.println("}");
-			}
-
-			@Override
-			public void startFinals() {
-			}
-
-			@Override
-			public void endFinals() {
-				pw.printf("%d [shape=doublecircle, label=\"%d %s\"];%n", currentState, currentState, finals);
-			}
-
-			@Override
-			public void startTransitions() {
-			}
-
-			@Override
-			public void endTransitions() {
-			}
-
-			@Override
-			public void startStates() {
-				// TODO Auto-generated method stub
-				
-			}
-
-			@Override
-			public void endStates() {
-				// TODO Auto-generated method stub
-				
-			}
-		}
 
 		public CharFSA.Node getNode(int index) {
 			return nodes.get(index);
@@ -545,93 +467,175 @@ public interface CharFSA {
 			writer.endStates();
 		}
 		
-		public static class FileWriter implements CharFSA.Events { 
-			DataOutputStream s;
+	}
+	
+	public static class FileWriter implements CharFSA.Events { 
+		DataOutputStream s;
 
-			public FileWriter(DataOutputStream s) {
-				this.s = s;
-			}
+		public FileWriter(DataOutputStream s) {
+			this.s = s;
+		}
 
-			@Override
-			public void states(int states) throws IOException {
-				s.writeInt(states);
-			}
+		@Override
+		public void states(int states) throws IOException {
+			s.writeInt(states);
+		}
 
-			@Override
-			public void state(int state) throws IOException {
-				s.writeInt(state);
-			}
+		@Override
+		public void state(int state) throws IOException {
+			s.writeInt(state);
+		}
 
-			@Override
-			public void finals(int n) throws IOException {
-				s.writeInt(n);
-			}
+		@Override
+		public void finals(int n) throws IOException {
+			s.writeInt(n);
+		}
 
-			@Override
-			public void stateFinal(int fin) throws IOException {
-				s.writeInt(fin);
-			}
+		@Override
+		public void stateFinal(int fin) throws IOException {
+			s.writeInt(fin);
+		}
 
-			@Override
-			public void transitions(int n) throws IOException {
-				s.writeInt(n);
-				
-			}
+		@Override
+		public void transitions(int n) throws IOException {
+			s.writeInt(n);
+			
+		}
 
-			@Override
-			public void transition(char input, int dest) throws IOException {
-				s.writeInt(input);
-				s.writeInt(dest);
-			}
+		@Override
+		public void transition(char input, int dest) throws IOException {
+			s.writeInt(input);
+			s.writeInt(dest);
+		}
 
-			@Override
-			public void startState() {
-				// TODO Auto-generated method stub
-				
-			}
+		@Override
+		public void startState() {
+			// TODO Auto-generated method stub
+			
+		}
 
-			@Override
-			public void endState() {
-				// TODO Auto-generated method stub
-				
-			}
+		@Override
+		public void endState() {
+			// TODO Auto-generated method stub
+			
+		}
 
-			@Override
-			public void startFinals() {
-				// TODO Auto-generated method stub
-				
-			}
+		@Override
+		public void startFinals() {
+			// TODO Auto-generated method stub
+			
+		}
 
-			@Override
-			public void endFinals() {
-				// TODO Auto-generated method stub
-				
-			}
+		@Override
+		public void endFinals() {
+			// TODO Auto-generated method stub
+			
+		}
 
-			@Override
-			public void startTransitions() {
-				// TODO Auto-generated method stub
-				
-			}
+		@Override
+		public void startTransitions() {
+			// TODO Auto-generated method stub
+			
+		}
 
-			@Override
-			public void endTransitions() {
-				// TODO Auto-generated method stub
-				
-			}
+		@Override
+		public void endTransitions() {
+			// TODO Auto-generated method stub
+			
+		}
 
-			@Override
-			public void startStates() {
-				// TODO Auto-generated method stub
-				
-			}
+		@Override
+		public void startStates() {
+			// TODO Auto-generated method stub
+			
+		}
 
-			@Override
-			public void endStates() {
-				// TODO Auto-generated method stub
-				
-			}
+		@Override
+		public void endStates() {
+			// TODO Auto-generated method stub
+			
 		}
 	}
+	
+	public static class DotFormatter implements Events {
+		PrintWriter pw;
+		int currentState = 0;
+		TIntArrayList finals = new TIntArrayList(10);
+		
+		public DotFormatter(PrintWriter pw) {
+			this.pw = pw;
+		}
+
+		@Override
+		public void states(int states) throws IOException {
+		}
+
+		@Override
+		public void state(int state) throws IOException {
+			currentState = state;
+		}
+
+		@Override
+		public void finals(int n) throws IOException {
+			finals.clear();
+		}
+
+		@Override
+		public void stateFinal(int fin) throws IOException {
+			finals.add(fin);
+		}
+
+		@Override
+		public void transitions(int n) throws IOException {
+		}
+
+		@Override
+		public void transition(char input, int dest) throws IOException {
+			pw.printf("%d -> %d [label=\"%s\"];%n", currentState, dest, input);
+		}
+
+		@Override
+		public void startState() {
+			pw.println("digraph finite_state_machine {");
+			pw.println("rankdir=LR;");
+			pw.println("node [shape=circle]");
+		}
+
+		@Override
+		public void endState() {
+			pw.println("}");
+		}
+
+		@Override
+		public void startFinals() {
+		}
+
+		@Override
+		public void endFinals() {
+			pw.printf("%d [shape=doublecircle, label=\"%d %s\"];%n", currentState, currentState, finals);
+		}
+
+		@Override
+		public void startTransitions() {
+		}
+
+		@Override
+		public void endTransitions() {
+		}
+
+		@Override
+		public void startStates() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void endStates() {
+			// TODO Auto-generated method stub
+			
+		}
+	}
+
+
 
 }
