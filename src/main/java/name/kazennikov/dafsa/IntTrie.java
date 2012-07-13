@@ -1,6 +1,7 @@
 package name.kazennikov.dafsa;
 
 import gnu.trove.iterator.TIntIterator;
+import gnu.trove.iterator.TIntObjectIterator;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.list.array.TLongArrayList;
 import gnu.trove.map.hash.TIntObjectHashMap;
@@ -10,6 +11,7 @@ import gnu.trove.set.hash.TIntHashSet;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * Hash-based trie for int-length labels. Uses smaller memory footprint than {@link CharFSA}
@@ -286,5 +288,65 @@ public class IntTrie {
 		}
 		
 	}
+	
+	protected int countTransitions(long[] keys, int start) {
+		int current = (int)(keys[start] >>> 32);
+		int count = 0;
+		for(int i = start; i < keys.length; i++) {
+			int state = (int)(keys[i] >>> 32);
+			if(state != current)
+				return count;
+			count++;
+		}
+		
+		return count;
+			
+	}
+	
+	public void write(final IntFSA.Events writer) throws IOException {
+		writer.startStates();
+		writer.states(states);
+		
+		long[] keys = trans.keys();
+		Arrays.sort(keys);
+		int lastState = 0;
+		for(int i = 0; i != keys.length; i++) {
+			long curr = keys[i];
+			int state = (int) (curr >> 32);
+			// for diff state write its header 
+			if(state != lastState) {
 
+				if(lastState != 0) {
+					writer.endTransitions();
+					writer.endState();
+				}
+
+				writer.startState();
+				writer.state(state);
+
+				writer.startFinals();
+				TIntSet fin = getFinals(state);
+				if(fin != null) {
+					writer.finals(fin.size());
+					TIntIterator it = fin.iterator();
+					while(it.hasNext()) {
+						writer.stateFinal(it.next());
+					}
+				} else {
+					writer.finals(0);
+				}
+				writer.endFinals();
+				writer.startTransitions();
+				writer.transitions(countTransitions(keys, i));
+			}
+
+			int input = (int) (curr & 0xFFFFFFFFL);
+			int dest = trans.get(curr);
+			writer.transition(input, dest);
+		}
+		
+		writer.endTransitions();
+		writer.endState();
+		writer.endStates();
+	}
 }
