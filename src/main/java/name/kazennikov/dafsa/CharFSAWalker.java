@@ -17,6 +17,7 @@ public interface CharFSAWalker {
 	public static interface Processor {
 		/**
 		 * Process successful string match
+		 * 
 		 * @param src source char sequence
 		 * @param start start of the matched part
 		 * @param end end of the matcher part
@@ -27,6 +28,7 @@ public interface CharFSAWalker {
 	
 	/**
 	 * Walk a given char sequence
+	 * 
 	 * @param src source char sequence
 	 * @param start start index of the walked subsequence
 	 * @param end end index of the walked subsequence

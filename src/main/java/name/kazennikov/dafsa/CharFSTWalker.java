@@ -17,6 +17,7 @@ public interface CharFSTWalker {
 	public static interface Processor {
 		/**
 		 * Process successful string match
+		 * 
 		 * @param src source char sequence
 		 * @param out output char sequence
 		 * @param start start of the matched part
@@ -29,7 +30,8 @@ public interface CharFSTWalker {
 	
 	
 	/**
-	 * Walk a given char sequence
+	 * Walk a char sequence
+	 * 
 	 * @param src source char sequence
 	 * @param start start index of the walked subsequence
 	 * @param end end index of the walked subsequence
