@@ -13,21 +13,85 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
 
+/**
+ * FSA with char labels on state transitions
+ * @author Anton Kazennikov
+ *
+ */
 public interface CharFSA {
 	
+	/**
+	 * Add a sequence with optional final type to the FSA
+	 * @param seq char sequence to add
+	 * @param fin sequence final type
+	 */
 	public void add(CharSequence seq, int fin);
+	
+	/**
+	 * Add a a sequence with optional final type to the FSA using 
+	 * incremental minimization algorithm
+	 * @param seq char sequence to add
+	 * @param fin sequence final type
+	 */
 	public void addMinWord(CharSequence seq, int fin);
+
+	/**
+	 * Number of state in the FSA
+	 * @return
+	 */
 	int size();
+	/**
+	 * Write FSA using Events interface
+	 * @param events
+	 * @throws IOException
+	 */
 	void write(Events events) throws IOException;
 
 
+	/**
+	 * Node of a character FSA
+	 * @author Anton Kazennikov
+	 *
+	 */
 	public interface Node {
+		/**
+		 * Get next state on given input
+		 * @param input input char
+		 * @return next node or null, if there is no such transition
+		 */
 		public Node getNext(char input);
+		
+		/**
+		 * Set transition (current, input) -> next
+		 * @param input input char
+		 * @param next next state
+		 */
 		public void setNext(char input, Node next);
+		
+		/**
+		 * Callback on transition removal
+		 * @param input input char
+		 * @param next next state
+		 */
 		public void removeInbound(char input, Node next);
+		
+		/**
+		 * Callback on transition addition
+		 * @param input input char
+		 * @param next next state
+		 */
 		public void addInbound(char input, Node next);
 
+		/**
+		 * Final ids iterator
+		 * @return
+		 */
 		public TIntIterator getFinal();
+		
+		/**
+		 * Final ids count
+		 * @return
+		 */
 		public int finalCount();
 		/**
 		 * Add final feature to node
@@ -43,23 +107,68 @@ public interface CharFSA {
 		 */
 		public boolean removeFinal(int f);
 
+		/**
+		 * Is this state final?
+		 */
 		public boolean isFinal();
+
+		/**
+		 * Get number of inbound transitions
+		 * @return
+		 */
 		public int outbound();
+		
+		/**
+		 * Get number of outbound transitions
+		 * @return
+		 */
 		public int inbound();
 
 
 
+		/**
+		 * Make a fresh node
+		 */
 		public Node makeNode();
+
+		/**
+		 * Clone current node
+		 */
 		public Node cloneNode();
+		
+		/**
+		 * Assign data from this node to given
+		 * @param dest destination node
+		 * @return
+		 */
 		public Node assign(Node dest);
 
+		/**
+		 * Reset node - remove all transitions
+		 */
 		public void reset();
 
+		/**
+		 * Get transition table
+		 * @return
+		 */
 		public TCharObjectIterator<Node> next();
 
+		/**
+		 * Checks if this node is equivalent to given
+		 * @return
+		 */
 		public boolean equiv(Node node);
 
+		/**
+		 * Set node number
+		 */
 		public void setNumber(int num);
+		
+		/**
+		 * Get node number
+		 * @return
+		 */
 		public int getNumber();
 
 	}
@@ -71,17 +180,45 @@ public interface CharFSA {
 	 * @author Anton Kazennikov
 	 */
 	public interface Events {
-		public void startStates();
-		public void endStates();
+		/**
+		 * Announce start of states
+		 */
+		public void startStates() throws IOException;
 		
-		public void startState();
-		public void endState();
+		/**
+		 * Announce end of states
+		 */
+		public void endStates() throws IOException;
 		
-		public void startFinals();
-		public void endFinals();
+		/**
+		 * Announce start of state
+		 */
+		public void startState() throws IOException;
 		
-		public void startTransitions();
-		public void endTransitions();
+		/**
+		 * Announce end of state
+		 */
+		public void endState() throws IOException;
+		
+		/**
+		 * Announce start of final table
+		 */
+		public void startFinals() throws IOException;
+		
+		/**
+		 * Announce end of final table
+		 */
+		public void endFinals() throws IOException;
+		
+		/**
+		 * Announce start of transition table
+		 */
+		public void startTransitions() throws IOException;
+		
+		/**
+		 * Announce end of transition table
+		 */
+		public void endTransitions() throws IOException;
 		/**
 		 * Announce number of states in the trie
 		 * @param states
