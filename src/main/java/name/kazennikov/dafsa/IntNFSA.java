@@ -117,30 +117,30 @@ public class IntNFSA {
 		
 
 		@Override
-		public void states(int states) throws IOException {
+		public void states(int states) {
 			nfsa = new IntNFSA();
 		}
 
 		@Override
-		public void state(int state) throws IOException {
+		public void state(int state) {
 			this.state = state;
 		}
 
 		@Override
-		public void finals(int n) throws IOException {
+		public void finals(int n) {
 		}
 
 		@Override
-		public void stateFinal(int fin) throws IOException {
+		public void stateFinal(int fin) {
 			nfsa.addFinal(state, fin);
 		}
 
 		@Override
-		public void transitions(int n) throws IOException {
+		public void transitions(int n) {
 		}
 
 		@Override
-		public void transition(int input, int dest) throws IOException {
+		public void transition(int input, int dest) {
 			char in = (char)( input >> 16);
 			char out = (char) (input & 0xffff);
 			nfsa.addTransition(state, in, out, dest);

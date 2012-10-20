@@ -170,33 +170,33 @@ public class IntTrie {
 		int current = 0;
 
 		@Override
-		public void states(int states) throws IOException {
+		public void states(int states) {
 			fsa = new IntTrie();
 			fsa.states = states;
 		}
 
 		@Override
-		public void state(int state) throws IOException {
+		public void state(int state) {
 			current = state;
 			
 		}
 
 		@Override
-		public void finals(int n) throws IOException {
+		public void finals(int n) {
 		}
 
 		@Override
-		public void stateFinal(int fin) throws IOException {
+		public void stateFinal(int fin) {
 			fsa.addFinal(current, fin);
 			
 		}
 
 		@Override
-		public void transitions(int n) throws IOException {
+		public void transitions(int n) {
 		}
 
 		@Override
-		public void transition(int input, int dest) throws IOException {
+		public void transition(int input, int dest) {
 			fsa.setNext(current, input, dest);
 		}
 
@@ -255,7 +255,7 @@ public class IntTrie {
 		
 	}
 	public static class Reader {
-		public static void read(DataInputStream s, Builder<?> builder, int labelSize) throws IOException {
+		public static void read(DataInputStream s, Builder<?> builder, int labelSize) throws IOException, FSAException {
 			int states = s.readInt();
 			
 			builder.states(states);
@@ -303,7 +303,7 @@ public class IntTrie {
 			
 	}
 	
-	public void write(final IntFSA.Events writer) throws IOException {
+	public void write(final IntFSA.Events writer) throws IOException, FSAException {
 		writer.startStates();
 		writer.states(states);
 		

@@ -36,16 +36,17 @@ public interface CharFSA {
 	public void addMinWord(CharSequence seq, int fin);
 
 	/**
-	 * Number of state in the FSA
+	 * Number of states in the FSA
 	 * @return
 	 */
 	int size();
+
 	/**
 	 * Write FSA using Events interface
 	 * @param events
-	 * @throws IOException
+	 * @throws FSAException
 	 */
-	void write(Events events) throws IOException;
+	void write(Events events) throws FSAException;
 
 
 	/**
@@ -54,6 +55,7 @@ public interface CharFSA {
 	 *
 	 */
 	public interface Node {
+
 		/**
 		 * Get next state on given input
 		 * @param input input char
@@ -83,16 +85,17 @@ public interface CharFSA {
 		public void addInbound(char input, Node next);
 
 		/**
-		 * Final ids iterator
+		 * Final features iterator
 		 * @return
 		 */
 		public TIntIterator getFinal();
 		
 		/**
-		 * Final ids count
+		 * Get final features count
 		 * @return
 		 */
 		public int finalCount();
+
 		/**
 		 * Add final feature to node
 		 * @param fin final feature
@@ -149,13 +152,13 @@ public interface CharFSA {
 		public void reset();
 
 		/**
-		 * Get transition table
+		 * Get transitions table
 		 * @return
 		 */
 		public TCharObjectIterator<Node> next();
 
 		/**
-		 * Checks if this node is equivalent to given
+		 * Checks node equivalence
 		 * @return
 		 */
 		public boolean equiv(Node node);
@@ -180,81 +183,83 @@ public interface CharFSA {
 	 * @author Anton Kazennikov
 	 */
 	public interface Events {
+
 		/**
 		 * Announce start of states
 		 */
-		public void startStates() throws IOException;
+		public void startStates() throws FSAException;
 		
 		/**
 		 * Announce end of states
 		 */
-		public void endStates() throws IOException;
+		public void endStates() throws FSAException;
 		
 		/**
 		 * Announce start of state
 		 */
-		public void startState() throws IOException;
+		public void startState() throws FSAException;
 		
 		/**
 		 * Announce end of state
 		 */
-		public void endState() throws IOException;
+		public void endState() throws FSAException;
 		
 		/**
-		 * Announce start of final table
+		 * Announce start of final features list
 		 */
-		public void startFinals() throws IOException;
+		public void startFinals() throws FSAException;
 		
 		/**
-		 * Announce end of final table
+		 * Announce end of final features list
 		 */
-		public void endFinals() throws IOException;
+		public void endFinals() throws FSAException;
 		
 		/**
 		 * Announce start of transition table
 		 */
-		public void startTransitions() throws IOException;
+		public void startTransitions() throws FSAException;
 		
 		/**
 		 * Announce end of transition table
 		 */
-		public void endTransitions() throws IOException;
+		public void endTransitions() throws FSAException;
+
 		/**
 		 * Announce number of states in the trie
 		 * @param states
 		 */
-		public void states(int states) throws IOException;
+		public void states(int states) throws FSAException;
 
 		/**
 		 * Announce current state for the writer
 		 * @param state number of the current state
 		 */
-		public void state(int state) throws IOException;
+		public void state(int state) throws FSAException;
 
 		/**
 		 * Announce number of final features of the current state
 		 * @param n number of final features
 		 */
-		public void finals(int n) throws IOException;
+		public void finals(int n) throws FSAException;
 
 		/**
 		 * Announce final feature of the current state
 		 * @param fin  final feature
 		 */
-		public void stateFinal(int fin) throws IOException;
+		public void stateFinal(int fin) throws FSAException;
 
 		/**
 		 * Announce number of transitions of the current state
 		 * @param n number of transitions
 		 */
-		public void transitions(int n) throws IOException;
+		public void transitions(int n) throws FSAException;
 
 		/**
 		 * Announce transition of the current state
 		 * @param input input label
 		 * @param dest number of the destination state
 		 */
-		public void transition(char input, int dest) throws IOException;
+		public void transition(char input, int dest) throws FSAException;
 	}
 
 
@@ -567,7 +572,7 @@ public interface CharFSA {
 		}
 
 		@Override
-		public void write(final CharFSA.Events writer) throws IOException {
+		public void write(final CharFSA.Events writer) throws FSAException {
 			writer.startStates();
 			writer.states(nodes.size());
 
@@ -614,35 +619,61 @@ public interface CharFSA {
 		}
 
 		@Override
-		public void states(int states) throws IOException {
-			s.writeInt(states);
+		public void states(int states) throws FSAException {
+			try {
+				s.writeInt(states);
+			} catch (IOException e) {
+				throw new FSAException(e);
+			}
 		}
 
 		@Override
-		public void state(int state) throws IOException {
-			s.writeInt(state);
+		public void state(int state) throws FSAException {
+			try {
+				s.writeInt(state);
+			} catch (IOException e) {
+				throw new FSAException(e);
+			}
 		}
 
 		@Override
-		public void finals(int n) throws IOException {
-			s.writeInt(n);
+		public void finals(int n) throws FSAException {
+			try {
+				s.writeInt(n);
+			} catch (IOException e) {
+				throw new FSAException(e);
+			}
 		}
 
 		@Override
-		public void stateFinal(int fin) throws IOException {
-			s.writeInt(fin);
+		public void stateFinal(int fin) throws FSAException {
+			try {
+				s.writeInt(fin);
+			} catch (IOException e) {
+				throw new FSAException(e);
+			}
 		}
 
 		@Override
-		public void transitions(int n) throws IOException {
-			s.writeInt(n);
+		public void transitions(int n) throws FSAException {
+			
+			try {
+				s.writeInt(n);
+			} catch (IOException e) {
+				throw new FSAException(e);
+			}
 			
 		}
 
 		@Override
-		public void transition(char input, int dest) throws IOException {
-			s.writeInt(input);
-			s.writeInt(dest);
+		public void transition(char input, int dest) throws FSAException {
+			try {
+				s.writeInt(input);
+				s.writeInt(dest);
+			} catch (IOException e) {
+				throw new FSAException(e);
+			}
+
 		}
 
 		@Override
@@ -704,30 +735,30 @@ public interface CharFSA {
 		}
 
 		@Override
-		public void states(int states) throws IOException {
+		public void states(int states) {
 		}
 
 		@Override
-		public void state(int state) throws IOException {
+		public void state(int state) {
 			currentState = state;
 		}
 
 		@Override
-		public void finals(int n) throws IOException {
+		public void finals(int n) {
 			finals.clear();
 		}
 
 		@Override
-		public void stateFinal(int fin) throws IOException {
+		public void stateFinal(int fin) {
 			finals.add(fin);
 		}
 
 		@Override
-		public void transitions(int n) throws IOException {
+		public void transitions(int n) {
 		}
 
 		@Override
-		public void transition(char input, int dest) throws IOException {
+		public void transition(char input, int dest) {
 			pw.printf("%d -> %d [label=\"%s\"];%n", currentState, dest, input);
 		}
 
@@ -754,21 +785,21 @@ public interface CharFSA {
 
 		@Override
 		public void startTransitions() {
+			
 		}
 
 		@Override
 		public void endTransitions() {
+			
 		}
 
 		@Override
 		public void startStates() {
-			// TODO Auto-generated method stub
 			
 		}
 
 		@Override
 		public void endStates() {
-			// TODO Auto-generated method stub
 			
 		}
 	}

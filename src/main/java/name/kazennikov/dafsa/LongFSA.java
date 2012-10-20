@@ -2,14 +2,8 @@ package name.kazennikov.dafsa;
 
 import gnu.trove.iterator.TIntIterator;
 import gnu.trove.iterator.TLongObjectIterator;
-import gnu.trove.list.TIntList;
 import gnu.trove.list.TLongList;
-import gnu.trove.map.hash.TLongObjectHashMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
-import gnu.trove.procedure.TIntProcedure;
-import gnu.trove.procedure.TLongObjectProcedure;
-import gnu.trove.set.TIntSet;
-import gnu.trove.set.hash.TIntHashSet;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -17,25 +11,90 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
 
-import name.kazennikov.dafsa.IntFSA.Events;
 
-
+/**
+ * FSA with long labels on state transitions
+ * @author Anton Kazennikov
+ *
+ */
 public interface LongFSA {
 	
+	/**
+	 * Add a sequence with optional final type to the FSA
+	 * @param seq long sequence to add
+	 * @param fin sequence final type
+	 */
 	public void add(TLongList seq, int fin);
+	
+	/**
+	 * Add a a sequence with optional final type to the FSA using 
+	 * incremental minimization algorithm
+	 * @param seq long sequence to add
+	 * @param fin sequence final type
+	 */
 	public void addMinWord(TLongList seq, int fin);
+	
+	/**
+	 * Number of states in the FSA
+	 * @return
+	 */
 	int size();
-	void write(Events events) throws IOException;
+	
+	/**
+	 * Write FSA using Events interface
+	 * @param events
+	 * @throws FSAException
+	 */
+	void write(Events events) throws FSAException;
 
 
+	/**
+	 * Node of a long FSA
+	 * @author Anton Kazennikov
+	 *
+	 */
 	public interface Node {
+		
+		/**
+		 * Get next state on given input
+		 * @param input input char
+		 * @return next node or null, if there is no such transition
+		 */
 		public Node getNext(long input);
+		
+		/**
+		 * Set transition (current, input) -> next
+		 * @param input input char
+		 * @param next next state
+		 */
 		public void setNext(long input, Node next);
+		
+		/**
+		 * Callback on transition removal
+		 * @param input input char
+		 * @param next next state
+		 */
 		public void removeInbound(long input, Node next);
+		
+		/**
+		 * Callback on transition addition
+		 * @param input input char
+		 * @param next next state
+		 */
 		public void addInbound(long input, Node next);
 
+		/**
+		 * Final ids iterator
+		 * @return
+		 */
 		public TIntIterator getFinal();
+		
+		/**
+		 * Get final features count
+		 * @return
+		 */
 		public int finalCount();
+
 		/**
 		 * Add final feature to node
 		 * @param fin final feature
@@ -50,23 +109,67 @@ public interface LongFSA {
 		 */
 		public boolean removeFinal(int f);
 
+		/**
+		 * Is this state final?
+		 */
 		public boolean isFinal();
+		
+		/**
+		 * Get number of inbound transitions
+		 * @return
+		 */
 		public int outbound();
+		
+		/**
+		 * Get number of outbound transitions
+		 * @return
+		 */
 		public int inbound();
 
 
-
+		/**
+		 * Make a fresh node
+		 */
 		public Node makeNode();
+		
+		/**
+		 * Clone current node
+		 */
 		public Node cloneNode();
+		
+		/**
+		 * Assign data from this node to given
+		 * @param dest destination node
+		 * @return
+		 */
 		public Node assign(Node dest);
 
+		/**
+		 * Reset node - remove all transitions
+		 */
 		public void reset();
 
+		/**
+		 * Get transitions table
+		 * @return
+		 */
 		public TLongObjectIterator<Node> next();
 
+		/**
+		 * Checks node equivalence
+		 * @return
+		 */
 		public boolean equiv(Node node);
 
+		/**
+		 * Set node number
+		 */
 		public void setNumber(int num);
+		
+		/**
+		 * Get node number
+		 * @return
+		 */
 		public int getNumber();
 
 	}
@@ -79,54 +182,82 @@ public interface LongFSA {
 	 */
 	public interface Events {
 		
-		public void startStates();
-		public void endStates();
+		/**
+		 * Announce start of states
+		 */
+		public void startStates() throws FSAException;
 		
-		public void startState();
-		public void endState();
+		/**
+		 * Announce end of states
+		 */
+		public void endStates() throws FSAException;
 		
-		public void startFinals();
-		public void endFinals();
+		/**
+		 * Announce start of state
+		 */
+		public void startState() throws FSAException;
 		
-		public void startTransitions();
-		public void endTransitions();
+		/**
+		 * Announce end of state
+		 */
+		public void endState() throws FSAException;
+		
+		/**
+		 * Announce start of final features list
+		 */
+		public void startFinals() throws FSAException;
+		
+		/**
+		 * Announce end of final features list
+		 */
+		public void endFinals() throws FSAException;
+		
+		/**
+		 * Announce start of transition table
+		 */
+		public void startTransitions() throws FSAException;
+		
+		/**
+		 * Announce end of transition table
+		 */
+		public void endTransitions() throws FSAException;
 		
 		/**
 		 * Announce number of states in the trie
 		 * @param states
 		 */
-		public void states(int states) throws IOException;
+		public void states(int states) throws FSAException;
 
 		/**
 		 * Announce current state for the writer
 		 * @param state number of the current state
 		 */
-		public void state(int state) throws IOException;
+		public void state(int state) throws FSAException;
 
 		/**
 		 * Announce number of final features of the current state
 		 * @param n number of final features
 		 */
-		public void finals(int n) throws IOException;
+		public void finals(int n) throws FSAException;
 
 		/**
 		 * Announce final feature of the current state
 		 * @param fin  final feature
 		 */
-		public void stateFinal(int fin) throws IOException;
+		public void stateFinal(int fin) throws FSAException;
 
 		/**
 		 * Announce number of transitions of the current state
 		 * @param n number of transitions
 		 */
-		public void transitions(int n) throws IOException;
+		public void transitions(int n) throws FSAException;
 
 		/**
 		 * Announce transition of the current state
 		 * @param input input label
 		 * @param dest number of the destination state
 		 */
-		public void transition(long input, int dest) throws IOException;
+		public void transition(long input, int dest) throws FSAException;
 	}
 
 	public static class Simple {
@@ -456,7 +587,7 @@ public interface LongFSA {
 			return id;
 		}
 
-		public void write(final LongFSA.Events writer) throws IOException {
+		public void write(final LongFSA.Events writer) throws FSAException {
 			writer.startStates();
 			writer.states(nodes.size());
 
