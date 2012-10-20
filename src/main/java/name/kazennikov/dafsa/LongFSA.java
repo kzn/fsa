@@ -5,7 +5,6 @@ import gnu.trove.iterator.TLongObjectIterator;
 import gnu.trove.list.TLongList;
 import gnu.trove.map.hash.TObjectIntHashMap;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -260,7 +259,7 @@ public interface LongFSA {
 		public void transition(long input, int dest) throws FSAException;
 	}
 
-	public static class Simple {
+	public static class Simple implements LongFSA {
 		LongFSA.Node start;
 		List<LongFSA.Node> nodes = new ArrayList<LongFSA.Node>();
 
@@ -307,6 +306,7 @@ public interface LongFSA {
 		 * @param seq sequence to add
 		 * @param fin final state
 		 */
+		@Override
 		public void add(TLongList seq, int fin) {
 			LongFSA.Node current = start;
 
@@ -498,6 +498,7 @@ public interface LongFSA {
 			return 0;
 		}
 
+		@Override
 		public void addMinWord(TLongList input, int fin) {
 			/*
 			 * 1. get common prefix
@@ -587,6 +588,7 @@ public interface LongFSA {
 			return id;
 		}
 
+		@Override
 		public void write(final LongFSA.Events writer) throws FSAException {
 			writer.startStates();
 			writer.states(nodes.size());
