@@ -8,6 +8,15 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
+/**
+ * Trie based on generics
+ * 
+ * @author Anton Kazennikov
+ *
+ * @param <In> input label type
+ * @param <FC> collection for storing finals
+ * @param <Final> final type
+ */
 public class GenericTrie<In, FC extends Collection<Final>, Final> {
 
 	public interface Node<In, FC, Final> {
@@ -17,8 +26,10 @@ public class GenericTrie<In, FC extends Collection<Final>, Final> {
 		public void addInbound(Node<In, FC, Final> base, In input);
 		
 		public FC getFinal();
+
 		/**
 		 * Add final feature to node
+		 * 
 		 * @param fin final feature
 		 * @return true, if feature was added to the finals collection
 		 */
@@ -26,6 +37,7 @@ public class GenericTrie<In, FC extends Collection<Final>, Final> {
 		
 		/**
 		 * Remove final feature from the node
+		 * 
 		 * @param fin final feature
 		 * @return true, if feature was removed from the finals collection
 		 */
@@ -66,10 +78,12 @@ public class GenericTrie<In, FC extends Collection<Final>, Final> {
 			this.fin = fin;
 		}
 		
+		@Override
 		public void setNumber(int num) {
 			this.number = num;
 		}
 		
+		@Override
 		public int getNumber() {
 			return number;
 		}
@@ -96,7 +110,7 @@ public class GenericTrie<In, FC extends Collection<Final>, Final> {
 		
 		@Override
 		public FC getFinal() {
-			return fin;//Collections.unmodifiableSet(fin);
+			return fin;
 		}
 		
 		
@@ -288,7 +302,8 @@ public class GenericTrie<In, FC extends Collection<Final>, Final> {
 
 	/**
 	 * Writer for trie
-	 * @author ant
+	 * 
+	 * @author Anton Kazennikov
 	 *
 	 * @param <In> input label type
 	 * @param <Final> final feature type
@@ -296,36 +311,42 @@ public class GenericTrie<In, FC extends Collection<Final>, Final> {
 	public interface Writer<In, Final> {
 		/**
 		 * Announce number of states in the trie
+		 * 
 		 * @param states
 		 */
 		public void states(int states) throws IOException;
 
 		/**
 		 * Announce current state for the writer
+		 * 
 		 * @param state number of the current state
 		 */
 		public void state(int state) throws IOException;
 
 		/**
 		 * Announce number of final features of the current state
+		 * 
 		 * @param n number of final features
 		 */
 		public void finals(int n) throws IOException;
 
 		/**
 		 * Announce final feature of the current state
+		 * 
 		 * @param fin  final feature
 		 */
 		public void stateFinal(Final fin) throws IOException;
 		
 		/**
 		 * Announce number of transitions of the current state
+		 * 
 		 * @param n number of transitions
 		 */
 		public void transitions(int n) throws IOException;
 
 		/**
 		 * Announce transition of the current state
+		 * 
 		 * @param input input label
 		 * @param dest number of the destination state
 		 */

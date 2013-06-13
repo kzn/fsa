@@ -7,7 +7,13 @@ import gnu.trove.set.hash.TIntHashSet;
 
 
 
-
+/**
+ * Int-based finite state transducer (FST)
+ * It is a FSA based on pairs (in, out)
+ * 
+ * @author Anton Kazennikov
+ *
+ */
 public class IntNFSA {
 	TIntObjectHashMap<TIntSet> finals = new TIntObjectHashMap<TIntSet>();
 	

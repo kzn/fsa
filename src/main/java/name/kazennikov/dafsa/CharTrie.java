@@ -3,7 +3,12 @@ package name.kazennikov.dafsa;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.set.TIntSet;
 
-
+/**
+ * Character based trie. Based on int-trie (so consumes 4 bytes per label).
+ * 
+ * @author Anton Kazennikov
+ *
+ */
 public class CharTrie extends IntTrie {
 	
 	public void add(String s, int f) {

@@ -16,7 +16,8 @@ import name.kazennikov.dafsa.GenericTrie.Node;
 
 /**
  * Simple trie class with some basic functionality
- * @author ant
+
+ * @author Anton Kazennikov
  *
  * @param <In> label type
  * @param <Final>  final type
@@ -65,6 +66,7 @@ public class GenericFSA<In, FC extends Collection<Final>, Final> {
 	
 	/**
 	 * Add sequence seq with final fin to trie
+	 * 
 	 * @param seq sequence to add
 	 * @param fin final state
 	 */
@@ -91,7 +93,8 @@ public class GenericFSA<In, FC extends Collection<Final>, Final> {
 	
 	
 	/**
-	 * Get next state to the given with input in, get exisiting state or add new
+	 * Get next state to the given with input in, get existing state or add new
+	 * 
 	 * @param node base trie node
 	 * @param in input
 	 * @return next node
@@ -111,6 +114,7 @@ public class GenericFSA<In, FC extends Collection<Final>, Final> {
 	
 	/**
 	 * Get set of finals encountered while walking this trie with sequence seq
+	 * 
 	 * @param seq input sequence
 	 * @return set of encountered finals
 	 */
@@ -152,6 +156,7 @@ public class GenericFSA<In, FC extends Collection<Final>, Final> {
 	
 	/**
 	 * Add suffix to given new state
+	 * 
 	 * @param n base node
 	 * @param seq sequence to add
 	 * @param fin final state
@@ -174,9 +179,6 @@ public class GenericFSA<In, FC extends Collection<Final>, Final> {
 	}
 	
 	public void addFinal(GenericTrie.Node<In, FC, Final> node, Final fin) {
-		//if(node.getFinal().contains(fin))
-		//	return;
-		
 		reg.remove(node);
 		node.addFinal(fin);
 	}
@@ -218,6 +220,7 @@ public class GenericFSA<In, FC extends Collection<Final>, Final> {
 	
 	/**
 	 * Return size of the trie as number of nodes
+	 * 
 	 * @return
 	 */
 	public int size() {
