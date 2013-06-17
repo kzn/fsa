@@ -19,6 +19,7 @@ import name.kazennikov.dafsa.GenericTrie.Node;
  * @author ant
  *
  * @param <In> label type
+ * @param <FC> type for collection of final types
  * @param <Final>  final type
  */
 public class GenericFSA<In, FC extends Collection<Final>, Final> {
