@@ -10,7 +10,8 @@ import name.kazennikov.dafsa.GenericTrie.SimpleNode;
 
 /**
  * A Trie built on strings
- * @author ant
+ * 
+ * @author Anton Kazennikov
  *
  */
 public class CharSequenceTrie<Final> {
@@ -33,7 +34,8 @@ public class CharSequenceTrie<Final> {
 	}
 	
 	/**
-	 * Add string to trie
+	 * Add string to the trie
+	 * 
 	 * @param s char sequence to walk
 	 * @param fin final state payload to add
 	 */

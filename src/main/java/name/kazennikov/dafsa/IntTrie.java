@@ -1,7 +1,6 @@
 package name.kazennikov.dafsa;
 
 import gnu.trove.iterator.TIntIterator;
-import gnu.trove.iterator.TIntObjectIterator;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.list.array.TLongArrayList;
 import gnu.trove.map.hash.TIntObjectHashMap;
@@ -16,6 +15,7 @@ import java.util.Arrays;
 /**
  * Hash-based trie for int-length labels. Uses smaller memory footprint than {@link CharFSA}
  * when constructing trie-based structures
+ * 
  * @author Anton Kazennikov
  *
  */

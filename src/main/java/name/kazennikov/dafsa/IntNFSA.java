@@ -5,11 +5,15 @@ import gnu.trove.map.hash.TLongLongHashMap;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 
-import java.io.IOException;
 
 
-
-
+/**
+ * Int-based finite state transducer (FST)
+ * It is a FSA based on pairs (in, out)
+ * 
+ * @author Anton Kazennikov
+ *
+ */
 public class IntNFSA {
 	TIntObjectHashMap<TIntSet> finals = new TIntObjectHashMap<TIntSet>();
 	
@@ -20,12 +24,6 @@ public class IntNFSA {
 	final TIntArrayList outChars = new TIntArrayList();
 	final TIntArrayList nextStates = new TIntArrayList();
 	
-	
-//	@Override
-//	public void addFinals(int state, int[] finals) {
-//		this.finals.add(finals);
-//	}
-
 
 	public void addTransition(int srcState, char input, char output, int destState) {
 		long key = key(srcState, input);
@@ -64,22 +62,6 @@ public class IntNFSA {
 		stateFinals.add(fin);
 	}
 	
-//	public long getKey(int srcState, int label) {
-//		long key = srcState;
-//		key <<= 32;
-//		key += label;
-//		return key;
-//	}
-	
-//	public char getInputLabel(long key) {
-//		return (char)(key & 0xffffL);
-//	}
-//	
-//	public char getOutputLabel(long key) {
-//		return (char)( (key & 0xffffffffL) >>> 16);
-//	}
-
-	
 	public int getState(long key) {
 		return (int)(key >>> 32);
 	}
@@ -111,7 +93,7 @@ public class IntNFSA {
 	
 	
 	
-	public static class IntNFSABuilder implements IntTrie.Builder<IntNFSA> {
+	public static class Builder implements IntTrie.Builder<IntNFSA> {
 		IntNFSA nfsa;
 		int state = 0;
 		
@@ -202,7 +184,22 @@ public class IntNFSA {
 	}
 
 
+	/**
+	 * FST walker. There is 2 modes for walking this FST:<ul>
+	 * <li> exact case
+	 * <li> ignore case - assumes that given string is already lowercased
+	 * </ul>
+	 * @author Anton Kazennikov
+	 *
+	 */
 	public class Walker implements CharFSTWalker {
+		boolean ignoreCase;
+		
+		public Walker(boolean ignoreCase) {
+			this.ignoreCase = ignoreCase;
+		}
+
+		
 		
 		protected void walkIterativeInternal(CharSequence s, StringBuilder sb, int startIndex, int endIndex, int currentIndex, 
 				int state, char ch, Processor parseProcessor) {
@@ -243,9 +240,11 @@ public class IntNFSA {
 								
 				walkIterativeInternal(s, sb, startIndex, endIndex, currentIndex, state, ch, parseProcessor);
 				
-				char toUpper = Character.toUpperCase(ch);
-				if(toUpper != ch) {
-					walkIterativeInternal(s, sb, startIndex, endIndex, currentIndex, state, toUpper, parseProcessor);
+				if(ignoreCase) {
+					char toUpper = Character.toUpperCase(ch);
+					if(toUpper != ch) {
+						walkIterativeInternal(s, sb, startIndex, endIndex, currentIndex, state, toUpper, parseProcessor);
+					}
 				}
 				
 				// for single-pass morphan on fst only
@@ -260,7 +259,7 @@ public class IntNFSA {
 		
 	}
 	
-	public CharFSTWalker makeFSTWalker() {
-		return new Walker();
+	public CharFSTWalker makeFSTWalker(boolean ignoreCase) {
+		return new Walker(ignoreCase);
 	}
 }

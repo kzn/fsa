@@ -5,12 +5,14 @@ import gnu.trove.set.TIntSet;
 /**
  * Walker interface for char based FSA. Walks the FSA on subsequence
  * and returns found feature sets
+ * 
  * @author Anton Kazennikov
  *
  */
 public interface CharFSAWalker {
 	/**
-	 * Feature set processor. Process a successful match of the walker
+	 * Processor of successful match of the walker
+	 * 
 	 * @author Anton Kazennikov
 	 *
 	 */

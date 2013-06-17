@@ -3,7 +3,6 @@ package name.kazennikov.dafsa;
 import gnu.trove.iterator.TCharObjectIterator;
 import gnu.trove.iterator.TIntIterator;
 import gnu.trove.list.array.TIntArrayList;
-import gnu.trove.map.hash.TObjectIntHashMap;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -22,6 +21,7 @@ public interface CharFSA {
 	
 	/**
 	 * Add a sequence with optional final type to the FSA
+	 * 
 	 * @param seq char sequence to add
 	 * @param fin sequence final type
 	 */
@@ -30,6 +30,7 @@ public interface CharFSA {
 	/**
 	 * Add a a sequence with optional final type to the FSA using 
 	 * incremental minimization algorithm
+	 * 
 	 * @param seq char sequence to add
 	 * @param fin sequence final type
 	 */
@@ -37,20 +38,23 @@ public interface CharFSA {
 
 	/**
 	 * Number of states in the FSA
+	 * 
 	 * @return
 	 */
 	int size();
 
 	/**
 	 * Write FSA using Events interface
-	 * @param events
+	 * 
+	 * @param events event listener object
 	 * @throws FSAException
 	 */
 	void write(Events events) throws FSAException;
 
 
 	/**
-	 * Node of a character FSA
+	 * Node of a FSA with char labels
+	 * 
 	 * @author Anton Kazennikov
 	 *
 	 */
@@ -58,6 +62,7 @@ public interface CharFSA {
 
 		/**
 		 * Get next state on given input
+		 * 
 		 * @param input input char
 		 * @return next node or null, if there is no such transition
 		 */
@@ -65,6 +70,7 @@ public interface CharFSA {
 		
 		/**
 		 * Set transition (current, input) -> next
+		 * 
 		 * @param input input char
 		 * @param next next state
 		 */
@@ -72,6 +78,7 @@ public interface CharFSA {
 		
 		/**
 		 * Callback on transition removal
+		 * 
 		 * @param input input char
 		 * @param next next state
 		 */
@@ -79,6 +86,7 @@ public interface CharFSA {
 		
 		/**
 		 * Callback on transition addition
+		 * 
 		 * @param input input char
 		 * @param next next state
 		 */
@@ -86,18 +94,21 @@ public interface CharFSA {
 
 		/**
 		 * Final features iterator
+		 * 
 		 * @return
 		 */
 		public TIntIterator getFinal();
 		
 		/**
 		 * Get final features count
+		 * 
 		 * @return
 		 */
 		public int finalCount();
 
 		/**
 		 * Add final feature to node
+		 * 
 		 * @param fin final feature
 		 * @return true, if feature was added to the finals collection
 		 */
@@ -105,6 +116,7 @@ public interface CharFSA {
 
 		/**
 		 * Remove final feature from the node
+		 * 
 		 * @param fin final feature
 		 * @return true, if feature was removed from the finals collection
 		 */
@@ -117,12 +129,14 @@ public interface CharFSA {
 
 		/**
 		 * Get number of inbound transitions
+		 * 
 		 * @return
 		 */
 		public int outbound();
 		
 		/**
 		 * Get number of outbound transitions
+		 * 
 		 * @return
 		 */
 		public int inbound();
@@ -141,6 +155,7 @@ public interface CharFSA {
 		
 		/**
 		 * Assign data from this node to given
+		 * 
 		 * @param dest destination node
 		 * @return
 		 */
@@ -153,12 +168,14 @@ public interface CharFSA {
 
 		/**
 		 * Get transitions table
+		 * 
 		 * @return
 		 */
 		public TCharObjectIterator<Node> next();
 
 		/**
 		 * Checks node equivalence
+		 * 
 		 * @return
 		 */
 		public boolean equiv(Node node);
@@ -170,6 +187,7 @@ public interface CharFSA {
 		
 		/**
 		 * Get node number
+		 * 
 		 * @return
 		 */
 		public int getNumber();
@@ -180,6 +198,7 @@ public interface CharFSA {
 
 	/**
 	 * Event producer/consumer for FSA
+	 * 
 	 * @author Anton Kazennikov
 	 */
 	public interface Events {
@@ -226,36 +245,42 @@ public interface CharFSA {
 
 		/**
 		 * Announce number of states in the trie
+		 * 
 		 * @param states
 		 */
 		public void states(int states) throws FSAException;
 
 		/**
 		 * Announce current state for the writer
+		 * 
 		 * @param state number of the current state
 		 */
 		public void state(int state) throws FSAException;
 
 		/**
 		 * Announce number of final features of the current state
+		 * 
 		 * @param n number of final features
 		 */
 		public void finals(int n) throws FSAException;
 
 		/**
 		 * Announce final feature of the current state
-		 * @param fin  final feature
+		 * 
+		 * @param fin final feature
 		 */
 		public void stateFinal(int fin) throws FSAException;
 
 		/**
 		 * Announce number of transitions of the current state
+		 * 
 		 * @param n number of transitions
 		 */
 		public void transitions(int n) throws FSAException;
 
 		/**
 		 * Announce transition of the current state
+		 * 
 		 * @param input input label
 		 * @param dest number of the destination state
 		 */
@@ -271,7 +296,7 @@ public interface CharFSA {
 
 		Register reg = new Register();
 
-		class Register {
+		protected static class Register {
 			HashMap<CharFSA.Node, CharFSA.Node> m = new HashMap<CharFSA.Node, CharFSA.Node>();
 
 			public boolean contains(CharFSA.Node node) {
@@ -307,9 +332,11 @@ public interface CharFSA {
 
 		/**
 		 * Add sequence seq with final fin to trie
+		 * 
 		 * @param seq sequence to add
 		 * @param fin final state
 		 */
+		@Override
 		public void add(CharSequence seq, int fin) {
 			CharFSA.Node current = start;
 
@@ -333,7 +360,8 @@ public interface CharFSA {
 
 
 		/**
-		 * Get next state to the given with input in, get exisiting state or add new
+		 * Get next state to the given with input in, get existing state or add new
+		 * 
 		 * @param node base trie node
 		 * @param in input
 		 * @return next node
@@ -353,6 +381,7 @@ public interface CharFSA {
 
 		/**
 		 * Get set of finals encountered while walking this trie with sequence seq
+		 * 
 		 * @param seq input sequence
 		 * @return set of encountered finals
 		 */
@@ -375,6 +404,7 @@ public interface CharFSA {
 
 		/**
 		 * Add suffix to given new state
+		 * 
 		 * @param n base node
 		 * @param seq sequence to add
 		 * @param fin final state
@@ -399,9 +429,6 @@ public interface CharFSA {
 		}
 
 		public void addFinal(CharFSA.Node node, int fin) {
-			//if(node.getFinal().contains(fin))
-			//	return;
-
 			reg.remove(node);
 			node.addFinal(fin);
 		}
@@ -413,6 +440,7 @@ public interface CharFSA {
 
 		/**
 		 * Get start node
+		 * 
 		 * @return
 		 */
 		public CharFSA.Node getStart() {
@@ -422,6 +450,7 @@ public interface CharFSA {
 
 		/**
 		 * Make new node
+		 * 
 		 * @return
 		 */
 		protected CharFSA.Node makeNode() {
@@ -443,12 +472,20 @@ public interface CharFSA {
 
 		/**
 		 * Return size of the trie as number of nodes
+		 * 
 		 * @return
 		 */
+		@Override
 		public int size() {
 			return nodes.size() - free.size();
 		}
 
+		/**
+		 * Check is node is confluenced
+		 * 
+		 * @param node node to check
+		 * @return
+		 */
 		public boolean isConfluence(CharFSA.Node node) {
 			return node.inbound() > 1;
 		}
@@ -472,6 +509,13 @@ public interface CharFSA {
 			return prefix;
 		}
 
+		/**
+		 * Find index of the first confluenced node. If no such node is found 0 is return.
+		 * It is valid because 0 is the start node and by definition isn't confluenced.
+		 * 
+		 * @param nodes node list
+		 * @return index of first confluenced node, or 0, if there are no such node 
+		 */
 		int findConfluence(List<CharFSA.Node> nodes) {
 			for(int i = 0; i != nodes.size(); i++)
 				if(isConfluence(nodes.get(i)))
@@ -532,9 +576,7 @@ public interface CharFSA {
 				CharFSA.Node n = nodeList.get(idx);
 				CharFSA.Node regNode = reg.get(n);
 
-				//if(n.equiv(regNode))
-
-				// stop
+				// stop criterion
 				if(regNode == n) {
 					if(idx < stop)
 						return;
@@ -546,29 +588,15 @@ public interface CharFSA {
 					nodeList.set(idx, regNode);
 					n.reset();
 					free.push(n);
-
-					//nodes.remove(n);
 				}
 				inIdx--;
 				idx--;
 			}
-
 		}
 		
 
 		public CharFSA.Node getNode(int index) {
 			return nodes.get(index);
-		}
-
-		public static <T> int getId(TObjectIntHashMap<T> map, T object) {
-			int id = map.get(object);
-
-			if(id == 0) {
-				id = map.size() + 1;
-				map.put(object, id);
-			}
-
-			return id;
 		}
 
 		@Override
@@ -611,6 +639,12 @@ public interface CharFSA {
 		
 	}
 	
+	/**
+	 * Event listener for writing CharFSA to a {@link DataOutputStream}
+	 * 
+	 * @author Anton Kazennikov
+	 *
+	 */
 	public static class FileWriter implements CharFSA.Events { 
 		DataOutputStream s;
 
@@ -678,53 +712,43 @@ public interface CharFSA {
 
 		@Override
 		public void startState() {
-			// TODO Auto-generated method stub
-			
 		}
 
 		@Override
 		public void endState() {
-			// TODO Auto-generated method stub
-			
 		}
 
 		@Override
 		public void startFinals() {
-			// TODO Auto-generated method stub
-			
 		}
 
 		@Override
 		public void endFinals() {
-			// TODO Auto-generated method stub
-			
 		}
 
 		@Override
 		public void startTransitions() {
-			// TODO Auto-generated method stub
-			
 		}
 
 		@Override
 		public void endTransitions() {
-			// TODO Auto-generated method stub
-			
 		}
 
 		@Override
 		public void startStates() {
-			// TODO Auto-generated method stub
-			
 		}
 
 		@Override
 		public void endStates() {
-			// TODO Auto-generated method stub
-			
 		}
 	}
-	
+
+	/**
+	 * Event write of CharFSA to .dot (graphviz) file format
+	 * 
+	 * @author Anton Kazennikov
+	 *
+	 */
 	public static class DotFormatter implements Events {
 		PrintWriter pw;
 		int currentState = 0;

@@ -16,6 +16,7 @@ import java.util.Stack;
 
 /**
  * FSA with int labels on state transitions
+ * 
  * @author Anton Kazennikov
  *
  */
@@ -23,6 +24,7 @@ public interface IntFSA {
 
 	/**
 	 * Add a sequence with optional final type to the FSA
+	 * 
 	 * @param seq char sequence to add
 	 * @param fin sequence final type
 	 */
@@ -31,6 +33,7 @@ public interface IntFSA {
 	/**
 	 * Add a a sequence with optional final type to the FSA using 
 	 * incremental minimization algorithm
+	 * 
 	 * @param seq char sequence to add
 	 * @param fin sequence final type
 	 */
@@ -38,12 +41,14 @@ public interface IntFSA {
 
 	/**
 	 * Number of states in the FSA
+	 * 
 	 * @return
 	 */
 	int size();
 	
 	/**
 	 * Write FSA using Events interface
+	 * 
 	 * @param events
 	 * @throws FSAException
 	 */
@@ -53,6 +58,7 @@ public interface IntFSA {
 
 	/**
 	 * Node of a int FSA
+	 * 
 	 * @author Anton Kazennikov
 	 *
 	 */
@@ -60,6 +66,7 @@ public interface IntFSA {
 		
 		/**
 		 * Get next state on given input
+		 * 
 		 * @param input input char
 		 * @return next node or null, if there is no such transition
 		 */
@@ -67,6 +74,7 @@ public interface IntFSA {
 		
 		/**
 		 * Set transition (current, input) -> next
+		 * 
 		 * @param input input char
 		 * @param next next state
 		 */
@@ -74,6 +82,7 @@ public interface IntFSA {
 		
 		/**
 		 * Callback on transition removal
+		 * 
 		 * @param input input char
 		 * @param next next state
 		 */		
@@ -81,6 +90,7 @@ public interface IntFSA {
 		
 		/**
 		 * Callback on transition addition
+		 * 
 		 * @param input input char
 		 * @param next next state
 		 */
@@ -88,18 +98,21 @@ public interface IntFSA {
 
 		/**
 		 * Final features iterator
+		 * 
 		 * @return
 		 */
 		public TIntIterator getFinal();
 		
 		/**
 		 * Get final features count
+		 * 
 		 * @return
 		 */
 		public int finalCount();
 
 		/**
 		 * Add final feature to node
+		 * 
 		 * @param fin final feature
 		 * @return true, if feature was added to the finals collection
 		 */
@@ -107,6 +120,7 @@ public interface IntFSA {
 
 		/**
 		 * Remove final feature from the node
+		 * 
 		 * @param fin final feature
 		 * @return true, if feature was removed from the finals collection
 		 */
@@ -119,12 +133,14 @@ public interface IntFSA {
 		
 		/**
 		 * Get number of inbound transitions
+		 * 
 		 * @return
 		 */
 		public int outbound();
 		
 		/**
 		 * Get number of outbound transitions
+		 * 
 		 * @return
 		 */
 		public int inbound();
@@ -142,6 +158,7 @@ public interface IntFSA {
 		
 		/**
 		 * Assign data from this node to given
+		 * 
 		 * @param dest destination node
 		 * @return
 		 */
@@ -154,12 +171,14 @@ public interface IntFSA {
 
 		/**
 		 * Get transitions table
+		 * 
 		 * @return
 		 */
 		public TIntObjectIterator<Node> next();
 
 		/**
 		 * Checks node equivalence
+		 * 
 		 * @return
 		 */
 		public boolean equiv(Node node);
@@ -171,6 +190,7 @@ public interface IntFSA {
 		
 		/**
 		 * Get node number
+		 * 
 		 * @return
 		 */
 		public int getNumber();
@@ -179,6 +199,7 @@ public interface IntFSA {
 	
 	/**
 	 * Event producer/consumer for for IntFSA
+	 * 
 	 * @author Anton Kazennikov
 	 */
 	public interface Events {
@@ -225,36 +246,42 @@ public interface IntFSA {
 
 		/**
 		 * Announce number of states in the trie
+		 * 
 		 * @param states
 		 */
 		public void states(int states) throws FSAException;
 
 		/**
 		 * Announce current state for the writer
+		 * 
 		 * @param state number of the current state
 		 */
 		public void state(int state) throws FSAException;
 
 		/**
 		 * Announce number of final features of the current state
+		 * 
 		 * @param n number of final features
 		 */
 		public void finals(int n) throws FSAException;
 
 		/**
 		 * Announce final feature of the current state
-		 * @param fin  final feature
+		 * 
+		 * @param fin final feature
 		 */
 		public void stateFinal(int fin) throws FSAException;
 
 		/**
 		 * Announce number of transitions of the current state
+		 * 
 		 * @param n number of transitions
 		 */
 		public void transitions(int n) throws FSAException;
 
 		/**
 		 * Announce transition of the current state
+		 * 
 		 * @param input input label
 		 * @param dest number of the destination state
 		 */
@@ -307,9 +334,11 @@ public interface IntFSA {
 
 		/**
 		 * Add sequence seq with final fin to trie
+		 * 
 		 * @param seq sequence to add
 		 * @param fin final state
 		 */
+		@Override
 		public void add(TIntList seq, int fin) {
 			IntFSA.Node current = start;
 
@@ -333,7 +362,8 @@ public interface IntFSA {
 
 
 		/**
-		 * Get next state to the given with input in, get exisiting state or add new
+		 * Get next state to the given with input in, get existing state or add new
+		 * 
 		 * @param node base trie node
 		 * @param in input
 		 * @return next node
@@ -353,6 +383,7 @@ public interface IntFSA {
 
 		/**
 		 * Get set of finals encountered while walking this trie with sequence seq
+		 * 
 		 * @param seq input sequence
 		 * @return set of encountered finals
 		 */
@@ -373,29 +404,9 @@ public interface IntFSA {
 			return n.getFinal();
 		}
 
-		/*public FC getAll(List<In> seq) {
-		//Set<Final> finals = new HashSet<Final>();
-		Trie.IntFSA.Node n = start;
-
-		for(In in : seq) {
-			finals.addAll(n.getFinal());
-			Trie.Node<In, Final> next = n.getNext(in);
-
-			if(next == null)
-				break;
-
-
-
-			n = next;
-		}
-
-		return finals;
-	}*/
-
-
-
 		/**
 		 * Add suffix to given new state
+		 * 
 		 * @param n base node
 		 * @param seq sequence to add
 		 * @param fin final state
@@ -420,9 +431,6 @@ public interface IntFSA {
 		}
 
 		public void addFinal(IntFSA.Node node, int fin) {
-			//if(node.getFinal().contains(fin))
-			//	return;
-
 			reg.remove(node);
 			node.addFinal(fin);
 		}
@@ -464,8 +472,10 @@ public interface IntFSA {
 
 		/**
 		 * Return size of the trie as number of nodes
+		 * 
 		 * @return
 		 */
+		@Override
 		public int size() {
 			return nodes.size() - free.size();
 		}
@@ -501,6 +511,7 @@ public interface IntFSA {
 			return 0;
 		}
 
+		@Override
 		public void addMinWord(TIntList input, int fin) {
 			/*
 			 * 1. get common prefix
@@ -599,6 +610,7 @@ public interface IntFSA {
 			return id;
 		}
 
+		@Override
 		public void write(final IntFSA.Events writer) throws FSAException {
 			writer.startStates();
 			writer.states(nodes.size());
@@ -703,50 +715,34 @@ public interface IntFSA {
 
 		@Override
 		public void startState() {
-			// TODO Auto-generated method stub
-			
 		}
 
 		@Override
 		public void endState() {
-			// TODO Auto-generated method stub
-			
 		}
 
 		@Override
 		public void startFinals() {
-			// TODO Auto-generated method stub
-			
 		}
 
 		@Override
 		public void endFinals() {
-			// TODO Auto-generated method stub
-			
 		}
 
 		@Override
 		public void startTransitions() {
-			// TODO Auto-generated method stub
-			
 		}
 
 		@Override
 		public void endTransitions() {
-			// TODO Auto-generated method stub
-			
 		}
 
 		@Override
 		public void startStates() {
-			// TODO Auto-generated method stub
-			
 		}
 
 		@Override
 		public void endStates() {
-			// TODO Auto-generated method stub
-			
 		}
 	}
 
