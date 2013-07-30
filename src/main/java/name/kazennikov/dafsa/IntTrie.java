@@ -165,13 +165,16 @@ public class IntTrie {
 	}
 	
 	
-	public static class SimpleBuilder implements Builder<IntTrie> {
-		IntTrie fsa = null;
+	public static class SimpleBuilder<E extends IntTrie> implements Builder<E> {
+		E fsa;
 		int current = 0;
+		
+		public SimpleBuilder(E fsa) {
+			this.fsa = fsa;
+		}
 
 		@Override
 		public void states(int states) {
-			fsa = new IntTrie();
 			fsa.states = states;
 		}
 
@@ -201,7 +204,7 @@ public class IntTrie {
 		}
 
 		@Override
-		public IntTrie build() {
+		public E build() {
 			return fsa;
 		}
 
