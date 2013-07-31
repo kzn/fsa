@@ -5,6 +5,8 @@ import gnu.trove.iterator.TIntObjectIterator;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.map.hash.TObjectIntHashMap;
+import gnu.trove.stack.TIntStack;
+import gnu.trove.stack.array.TIntArrayStack;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -12,7 +14,6 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Stack;
 
 /**
  * FSA with int labels on state transitions
@@ -291,10 +292,11 @@ public interface IntFSA {
 	
 	public static class Simple implements IntFSA {
 
+		public static final int INVALID_STATE = -1;
 		IntFSA.Node start;
 		List<IntFSA.Node> nodes = new ArrayList<IntFSA.Node>();
 
-		Stack<IntFSA.Node> free = new Stack<IntFSA.Node>();
+		TIntStack free = new TIntArrayStack();
 
 		Register reg = new Register();
 
@@ -305,15 +307,18 @@ public interface IntFSA {
 				return m.containsKey(node);
 			}
 
-			public IntFSA.Node get(IntFSA.Node node) {
-				return m.get(node);
+			public int get(int node) {
+				Node n = m.get(nodes.get(node));
+				return n == null? INVALID_STATE : n.getNumber();
 			}
 
-			public void add(IntFSA.Node node) {
+			public void add(int n) {
+				Node node = nodes.get(n);
 				m.put(node, node);
 			}
 
-			public void remove(IntFSA.Node node) {
+			public void remove(int n) {
+				Node node = nodes.get(n);
 				IntFSA.Node regNode = m.get(node);
 
 				if(regNode == null)
@@ -340,13 +345,13 @@ public interface IntFSA {
 		 */
 		@Override
 		public void add(TIntList seq, int fin) {
-			IntFSA.Node current = start;
+			int current = start.getNumber();
 
 			int idx = 0;
 
 			while(idx < seq.size()) {
-				IntFSA.Node n = current.getNext(seq.get(idx));
-				if(n == null)
+				int n = getNext(current, seq.get(idx));
+				if(n == INVALID_STATE)
 					break;
 
 				idx++;
@@ -368,18 +373,18 @@ public interface IntFSA {
 		 * @param in input
 		 * @return next node
 		 */
-		public IntFSA.Node getNextOrAdd(IntFSA.Node node, int in) {
-			IntFSA.Node next = node.getNext(in);
-
-			if(next != null)
-				return next;
-
-			next = makeNode();
-			setNext(node, in, next);
-
-			return next;
-
-		}
+//		public IntFSA.Node getNextOrAdd(IntFSA.Node node, int in) {
+//			IntFSA.Node next = node.getNext(in);
+//
+//			if(next != null)
+//				return next;
+//
+//			next = nodes.get(makeNode());
+//			setNext(node.getNumber(), in, next.getNumber());
+//
+//			return next;
+//
+//		}
 
 		/**
 		 * Get set of finals encountered while walking this trie with sequence seq
@@ -411,15 +416,15 @@ public interface IntFSA {
 		 * @param seq sequence to add
 		 * @param fin final state
 		 */
-		protected List<IntFSA.Node> addSuffix(IntFSA.Node n, TIntList seq, int start, int end, int fin) {
-			IntFSA.Node current = n;
+		protected TIntList addSuffix(int n, TIntList seq, int start, int end, int fin) {
+			int current = n;
 
-			List<IntFSA.Node> nodes = new ArrayList<IntFSA.Node>();
+			TIntList nodes = new TIntArrayList();
 
 			for(int i = start; i < end; i++) {
 
 				int in = seq.get(i);
-				IntFSA.Node node = makeNode();
+				int node = makeNode();
 				nodes.add(node);
 				setNext(current, in, node);
 				current = node;
@@ -430,13 +435,15 @@ public interface IntFSA {
 			return nodes;
 		}
 
-		public void addFinal(IntFSA.Node node, int fin) {
+		public void addFinal(int node, int fin) {
 			reg.remove(node);
-			node.addFinal(fin);
+			nodes.get(node).addFinal(fin);
 		}
 
-		public void setNext(IntFSA.Node src, int in, IntFSA.Node dest) {
-			reg.remove(src);
+		public void setNext(int srcIndex, int in, int destIndex) {
+			IntFSA.Node src = nodes.get(srcIndex);
+			IntFSA.Node dest = nodes.get(destIndex);
+			reg.remove(src.getNumber());
 			src.setNext(in, dest);
 		}
 
@@ -453,19 +460,20 @@ public interface IntFSA {
 		 * Make new node
 		 * @return
 		 */
-		protected IntFSA.Node makeNode() {
-			if(!free.empty())
+		protected int makeNode() {
+			if(free.size() != 0)
 				return free.pop();
 
 			IntFSA.Node node = start.makeNode();//new Trie.SimpleNode<In, Final>();
 			nodes.add(node);
 			node.setNumber(nodes.size());
-			return node;
+			return node.getNumber();
 		}
 
-		protected IntFSA.Node cloneNode(IntFSA.Node src) {
-			IntFSA.Node node = makeNode();
-			src.assign(node);
+		protected int cloneNode(int srcNode) {
+			IntFSA.Node src = nodes.get(srcNode);
+			int node = makeNode();
+			src.assign(nodes.get(node));
 			return node;
 		}
 
@@ -480,20 +488,26 @@ public interface IntFSA {
 			return nodes.size() - free.size();
 		}
 
-		public boolean isConfluence(IntFSA.Node node) {
-			return node.inbound() > 1;
+		public boolean isConfluence(int node) {
+			return nodes.get(node).inbound() > 1;
+		}
+		
+		public int getNext(int state, int input) {
+			Node n = nodes.get(state);
+			Node next = n.getNext(input);
+			return next == null? INVALID_STATE : next.getNumber();
 		}
 
-		List<IntFSA.Node> commonPrefix(TIntList seq) {
-			IntFSA.Node current = start;
-			List<IntFSA.Node> prefix = new ArrayList<IntFSA.Node>();
+		TIntList commonPrefix(TIntList seq) {
+			int current = start.getNumber();
+			TIntArrayList prefix = new TIntArrayList();
 			prefix.add(current);
 
 			for(int i = 0; i != seq.size(); i++) {
 				int in = seq.get(i);
-				IntFSA.Node next = current.getNext(in);
+				int next = getNext(current, in);
 
-				if(next == null)
+				if(next == INVALID_STATE)
 					break;
 
 				current = next;
@@ -503,10 +517,11 @@ public interface IntFSA {
 			return prefix;
 		}
 
-		int findConfluence(List<IntFSA.Node> nodes) {
-			for(int i = 0; i != nodes.size(); i++)
+		int findConfluence(TIntList nodes) {
+			for(int i = 0; i != nodes.size(); i++) {
 				if(isConfluence(nodes.get(i)))
 					return i;
+			}
 
 			return 0;
 		}
@@ -521,7 +536,7 @@ public interface IntFSA {
 			 * 5. minimize(replaceOrRegister from the last state toward the first)
 			 */
 
-			List<IntFSA.Node> prefix = commonPrefix(input);
+			TIntList prefix = commonPrefix(input);
 
 			int confIdx = findConfluence(prefix);
 			int stopIdx = confIdx == 0? prefix.size() : confIdx;
@@ -530,8 +545,8 @@ public interface IntFSA {
 				int idx = confIdx;
 
 				while(idx < prefix.size()) {
-					IntFSA.Node prev = prefix.get(idx - 1);
-					IntFSA.Node cloned = cloneNode(prefix.get(idx));
+					int prev = prefix.get(idx - 1);
+					int cloned = cloneNode(prefix.get(idx));
 					prefix.set(idx, cloned);
 					setNext(prev, input.get(confIdx - 1), cloned);
 					idx++;
@@ -541,7 +556,7 @@ public interface IntFSA {
 
 
 
-			List<IntFSA.Node> nodeList = new ArrayList<IntFSA.Node>(prefix);
+			TIntList nodeList = new TIntArrayList(prefix);
 
 			nodeList.addAll(addSuffix(prefix.get(prefix.size() - 1), input, prefix.size() - 1, input.size(), fin));
 
@@ -552,7 +567,7 @@ public interface IntFSA {
 		}
 
 
-		private void replaceOrRegister(TIntList input, List<IntFSA.Node> nodeList, int stop) {
+		private void replaceOrRegister(TIntList input, TIntList nodeList, int stop) {
 			if(nodeList.size() < 2)
 				return;
 
@@ -560,40 +575,32 @@ public interface IntFSA {
 			int inIdx = input.size() - 1;
 
 			while(idx > 0) {
-				IntFSA.Node n = nodeList.get(idx);
-				IntFSA.Node regNode = reg.get(n);
-
-				//if(n.equiv(regNode))
+				int n = nodeList.get(idx);
+				int regNode = reg.get(n);
 
 				// stop
 				if(regNode == n) {
 					if(idx < stop)
 						return;
-				} else if(regNode == null) {
+				} else if(regNode == INVALID_STATE) {
 					reg.add(n);
 				} else {
 					int in = input.get(inIdx);
 					setNext(nodeList.get(idx - 1), in, regNode);
 					nodeList.set(idx, regNode);
-					n.reset();
+					reset(n);
 					free.push(n);
-
-					//nodes.remove(n);
 				}
 				inIdx--;
 				idx--;
 			}
 
 		}
-
-		public static List<Character> string2CharList(String s) {
-			List<Character> list = new ArrayList<Character>();
-
-			for(int i = 0; i != s.length(); i++)
-				list.add(s.charAt(i));
-
-			return list;
+		
+		public void reset(int n) {
+			nodes.get(n).reset();
 		}
+
 		
 		public IntFSA.Node getNode(int index) {
 			return nodes.get(index);
@@ -851,6 +858,7 @@ public interface IntFSA {
 
 		
 	}
+
 
 
 
