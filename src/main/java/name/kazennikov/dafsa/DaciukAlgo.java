@@ -2,54 +2,9 @@ package name.kazennikov.dafsa;
 
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
-import gnu.trove.map.hash.TIntIntHashMap;
-
-import java.util.HashMap;
-
-import name.kazennikov.dafsa.IntFSA.Node;
 
 public abstract class DaciukAlgo {
 	public static final int INVALID_STATE = -1;
-	
-	class Register {
-		TIntIntHashMap map;
-		
-		HashMap<IntFSA.Node, IntFSA.Node> m = new HashMap<IntFSA.Node, IntFSA.Node>();
-
-		public boolean contains(IntFSA.Node node) {
-			return m.containsKey(node);
-		}
-
-		public int get(int node) {
-			Node n = m.get(nodes.get(node));
-			return n == null? INVALID_STATE : n.getNumber();
-		}
-
-		public void add(int n) {
-			Node node = nodes.get(n);
-			m.put(node, node);
-		}
-
-		public void remove(int n) {
-			Node node = nodes.get(n);
-			IntFSA.Node regNode = m.get(node);
-
-			if(regNode == null)
-				return;
-
-			if(node == regNode)
-				m.remove(node);
-		}
-
-	}
-	
-	Register reg;
-
-	
-	
-	public int getStartState() {
-		return 0;
-	}
 	
 	public abstract int getNext(int state, int input);
 	
@@ -59,7 +14,16 @@ public abstract class DaciukAlgo {
 	public abstract int addState();
 	public abstract void setNext(int src, int label, int dest);
 	public abstract void addFinal(int state, int finalId);
-	public abstract void removeState(int State);
+	public abstract void removeState(int state);
+	
+	public abstract int hash(int state);
+	public abstract boolean equals(int state1, int state2);
+	
+	public abstract int registerGet(int state);
+	public abstract void registerAdd(int state);
+	public abstract void registerRemove(int state); 
+	
+	protected int startState;
 	
 	/**
 	 * Add suffix to given new state
@@ -90,7 +54,7 @@ public abstract class DaciukAlgo {
 	
 	
 	TIntList commonPrefix(TIntList seq) {
-		int current = getStartState();
+		int current = startState;
 		TIntArrayList prefix = new TIntArrayList();
 		prefix.add(current);
 
@@ -168,14 +132,14 @@ public abstract class DaciukAlgo {
 
 		while(idx > 0) {
 			int n = nodeList.get(idx);
-			int regNode = reg.get(n);
+			int regNode = registerGet(n);
 
 			// stop
 			if(regNode == n) {
 				if(idx < stop)
 					return;
 			} else if(regNode == INVALID_STATE) {
-				reg.add(n);
+				registerAdd(n);
 			} else {
 				int in = input.get(inIdx);
 				setNext(nodeList.get(idx - 1), in, regNode);
