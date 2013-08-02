@@ -4,7 +4,7 @@ import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
 
 /**
- * Generic algorighm for constructing minimal AFSA (acyclic finite state automata) or minimial
+ * Generic algorithm for constructing minimal AFSA (acyclic finite state automata) or minimial
  * tries.
  * 
  * @author Anton Kazennikov
@@ -60,19 +60,16 @@ public abstract class DaciukAlgo {
 	public abstract void setNext(int src, int label, int dest);
 	
 	/**
-	 * Add final feature to given state
-	 * @param state
-	 * @param finalId
-	 */
-	public abstract void addFinal(int state, int finalId);
-
-	/**
 	 * Removes given state from the automaton
 	 * @param state state index
 	 */
 	public abstract void removeState(int state);
 	/**
-	 * Computes hash code of the state
+	 * Computes hash code of the state on:
+ 	 * <ul>
+	 * <li> transitions
+	 * <li> final features
+	 * </ul>
 	 * @param state
 	 * @return
 	 */
@@ -108,6 +105,14 @@ public abstract class DaciukAlgo {
 	 */
 	public abstract void registerRemove(int state); 
 	
+	/**
+	 * public set final feature for state
+	 * 
+	 * @param state 
+	 * @return true, if state has changed, else false (this is possible then state is already final)
+	 */
+	public abstract boolean setFinal(int state);
+	
 	protected int startState;
 	
 	/**
@@ -117,7 +122,7 @@ public abstract class DaciukAlgo {
 	 * @param seq sequence to add
 	 * @param fin final state
 	 */
-	protected TIntList addSuffix(int n, TIntList seq, int start, int end, int fin) {
+	protected TIntList addSuffix(int n, TIntList seq, int start, int end) {
 		int current = n;
 
 		TIntList nodes = new TIntArrayList();
@@ -131,7 +136,7 @@ public abstract class DaciukAlgo {
 			current = node;
 		}
 
-		addFinal(current, fin);
+		setFinal(current);
 
 		return nodes;
 	}
@@ -168,7 +173,7 @@ public abstract class DaciukAlgo {
 
 
 	
-	public void addMinWord(TIntList input, int fin) {
+	public void addMinWord(TIntList input) {
 		/*
 		 * 1. get common prefix
 		 * 2. find first confluence state in the common prefix
@@ -199,7 +204,7 @@ public abstract class DaciukAlgo {
 
 		TIntList nodeList = new TIntArrayList(prefix);
 
-		nodeList.addAll(addSuffix(prefix.get(prefix.size() - 1), input, prefix.size() - 1, input.size(), fin));
+		nodeList.addAll(addSuffix(prefix.get(prefix.size() - 1), input, prefix.size() - 1, input.size()));
 
 		replaceOrRegister(input, nodeList, stopIdx);
 
