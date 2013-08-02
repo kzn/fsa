@@ -3,24 +3,109 @@ package name.kazennikov.dafsa;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
 
+/**
+ * Generic algorighm for constructing minimal AFSA (acyclic finite state automata) or minimial
+ * tries.
+ * 
+ * @author Anton Kazennikov
+ *
+ */
 public abstract class DaciukAlgo {
 	public static final int INVALID_STATE = -1;
 	
+	/**
+	 * Find matching outbound transition for given state
+	 * @param state source state
+	 * @param input label
+	 * 
+	 * @return dest state, or -1, if no such transition exists
+	 */
 	public abstract int getNext(int state, int input);
 	
+	/**
+	 * Checks a state for confluence (if in has more that 1 inbound transitions)
+	 * @param state state to check
+
+	 * @return true if state has more than one inbound transitions
+	 */
 	public abstract boolean isConfluence(int state);
 	
+	/**
+	 * Clones given state. It clones:
+	 * <ul>
+	 * <li> transitions
+	 * <li> final features
+	 * </ul>
+	 * @param state
+	 * @return
+	 */
 	public abstract int cloneState(int state);
-	public abstract int addState();
-	public abstract void setNext(int src, int label, int dest);
-	public abstract void addFinal(int state, int finalId);
-	public abstract void removeState(int state);
 	
+	/**
+	 * Adds a new state to the automaton
+	 * 
+	 * @return index of the new state
+	 */
+	public abstract int addState();
+	
+	/**
+	 * Adds a transition from src to dest on given label, if
+	 * a transition from src with given label already exists, then change it
+	 * to new destination state.
+	 * 
+	 * @param src source state
+	 * @param label transition label 
+	 * @param dest destination state
+	 */
+	public abstract void setNext(int src, int label, int dest);
+	
+	/**
+	 * Add final feature to given state
+	 * @param state
+	 * @param finalId
+	 */
+	public abstract void addFinal(int state, int finalId);
+
+	/**
+	 * Removes given state from the automaton
+	 * @param state state index
+	 */
+	public abstract void removeState(int state);
+	/**
+	 * Computes hash code of the state
+	 * @param state
+	 * @return
+	 */
 	public abstract int hash(int state);
+	/**
+	 * Checks for state equality. Checks
+	 * <ul>
+	 * <li> transitions
+	 * <li> final features
+	 * </ul>
+	 * @param state1
+	 * @param state2
+	 * @return
+	 */
 	public abstract boolean equals(int state1, int state2);
 	
+	/**
+	 * Get equivalent state from the register
+	 * @param state
+	 * @return
+	 */
 	public abstract int registerGet(int state);
+
+	/**
+	 * Adds given state to register
+	 * @param state
+	 */
 	public abstract void registerAdd(int state);
+	
+	/**
+	 * Removes given state from register
+	 * @param state
+	 */
 	public abstract void registerRemove(int state); 
 	
 	protected int startState;
