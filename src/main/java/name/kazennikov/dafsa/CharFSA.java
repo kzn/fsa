@@ -298,21 +298,27 @@ public interface CharFSA {
 
 		protected static class Register {
 			HashMap<CharFSA.Node, CharFSA.Node> m = new HashMap<CharFSA.Node, CharFSA.Node>();
+			int add;
+			int remove;
+			int get;
 
 			public boolean contains(CharFSA.Node node) {
 				return m.containsKey(node);
 			}
 
 			public CharFSA.Node get(CharFSA.Node node) {
+				get++;
 				return m.get(node);
 			}
 
 			public void add(CharFSA.Node node) {
+				add++;
 				m.put(node, node);
 			}
 
 			public void remove(CharFSA.Node node) {
 				CharFSA.Node regNode = m.get(node);
+				remove++;
 
 				if(regNode == null)
 					return;

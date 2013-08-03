@@ -332,8 +332,9 @@ public interface IntFSA {
 
 		public Simple(IntFSA.Node start) {
 			this.start = start;
-			nodes.add(start);
 			start.setNumber(nodes.size());
+			nodes.add(start);
+
 		}
 
 
@@ -465,8 +466,9 @@ public interface IntFSA {
 				return free.pop();
 
 			IntFSA.Node node = start.makeNode();//new Trie.SimpleNode<In, Final>();
-			nodes.add(node);
 			node.setNumber(nodes.size());
+			nodes.add(node);
+
 			return node.getNumber();
 		}
 

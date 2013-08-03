@@ -13,6 +13,19 @@ import gnu.trove.list.array.TIntArrayList;
 public abstract class DaciukAlgo {
 	public static final int INVALID_STATE = -1;
 	
+	public class Register extends IntRegister {
+
+		@Override
+		public int hash(int state) {
+			return DaciukAlgo.this.hash(state);
+		}
+
+		@Override
+		public boolean equals(int state1, int state2) {
+			return DaciukAlgo.this.equals(state1, state2);
+		}
+	}
+	
 	/**
 	 * Find matching outbound transition for given state
 	 * @param state source state
@@ -56,8 +69,10 @@ public abstract class DaciukAlgo {
 	 * @param src source state
 	 * @param label transition label 
 	 * @param dest destination state
+	 * 
+	 * @return true, if state has changed
 	 */
-	public abstract void setNext(int src, int label, int dest);
+	public abstract boolean setNext(int src, int label, int dest);
 	
 	/**
 	 * Removes given state from the automaton
@@ -85,26 +100,7 @@ public abstract class DaciukAlgo {
 	 * @return
 	 */
 	public abstract boolean equals(int state1, int state2);
-	
-	/**
-	 * Get equivalent state from the register
-	 * @param state
-	 * @return
-	 */
-	public abstract int registerGet(int state);
-
-	/**
-	 * Adds given state to register
-	 * @param state
-	 */
-	public abstract void registerAdd(int state);
-	
-	/**
-	 * Removes given state from register
-	 * @param state
-	 */
-	public abstract void registerRemove(int state); 
-	
+		
 	/**
 	 * public set final feature for state
 	 * 
@@ -113,7 +109,34 @@ public abstract class DaciukAlgo {
 	 */
 	public abstract boolean setFinal(int state);
 	
+	/**
+	 * Checks if state is final for this final feature
+	 * @param state
+	 * @return
+	 */
+	public abstract boolean isFinal(int state);
+	
 	protected int startState;
+	protected Register register = new Register();
+	int counterRegAdd;
+	int counterRegRemove;
+	int counterRegGet;
+
+	
+	public void regAdd(int state) {
+		counterRegAdd++;
+		register.add(state);
+	}
+	
+	public int regGet(int state) {
+		counterRegGet++;
+		return register.get(state);
+	}
+	
+	public void regRemove(int state) {
+		counterRegRemove++;
+		register.remove(state);
+	}
 	
 	/**
 	 * Add suffix to given new state
@@ -126,9 +149,12 @@ public abstract class DaciukAlgo {
 		int current = n;
 
 		TIntList nodes = new TIntArrayList();
+		
+		if(end > start) {
+			regRemove(n); // as we will change it by adding new states in the sequence
+		}
 
 		for(int i = start; i < end; i++) {
-
 			int in = seq.get(i);
 			int node = addState();
 			nodes.add(node);
@@ -136,6 +162,12 @@ public abstract class DaciukAlgo {
 			current = node;
 		}
 
+		// this check is needed only when we set finalty on already existing state (not fresh created one)
+		if(start == end) {
+			if(!isFinal(current))
+				regRemove(current);
+		}
+		
 		setFinal(current);
 
 		return nodes;
@@ -185,10 +217,17 @@ public abstract class DaciukAlgo {
 		TIntList prefix = commonPrefix(input);
 
 		int confIdx = findConfluence(prefix);
-		int stopIdx = confIdx == 0? prefix.size() : confIdx;
+		/* index of stop for replaceOrRegister a pointer to the state before modifications
+		 * caused by this word addition. 
+		 * 
+		 * The logic is: if the state isn't changed by replaceOrRegister we can safely bail out
+		 * as all states before this won't change either
+		*/
+		int stopIdx = confIdx == 0? prefix.size() : confIdx; 
 
 		if(confIdx > 0) {	
 			int idx = confIdx;
+			regRemove(prefix.get(idx - 1)); // as we will clone confluence state and change previous to link the cloned
 
 			while(idx < prefix.size()) {
 				int prev = prefix.get(idx - 1);
@@ -222,16 +261,17 @@ public abstract class DaciukAlgo {
 
 		while(idx > 0) {
 			int n = nodeList.get(idx);
-			int regNode = registerGet(n);
+			int regNode = regGet(n);
 
 			// stop
 			if(regNode == n) {
 				if(idx < stop)
 					return;
 			} else if(regNode == INVALID_STATE) {
-				registerAdd(n);
+				regAdd(n);
 			} else {
 				int in = input.get(inIdx);
+				regRemove(nodeList.get(idx - 1));
 				setNext(nodeList.get(idx - 1), in, regNode);
 				nodeList.set(idx, regNode);
 				removeState(n);
