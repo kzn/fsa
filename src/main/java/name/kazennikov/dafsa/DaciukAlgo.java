@@ -12,20 +12,7 @@ import gnu.trove.list.array.TIntArrayList;
  */
 public abstract class DaciukAlgo {
 	public static final int INVALID_STATE = -1;
-	
-	public class Register extends IntRegister {
-
-		@Override
-		public int hash(int state) {
-			return DaciukAlgo.this.hash(state);
-		}
-
-		@Override
-		public boolean equals(int state1, int state2) {
-			return DaciukAlgo.this.equals(state1, state2);
-		}
-	}
-	
+		
 	/**
 	 * Find matching outbound transition for given state
 	 * @param state source state
@@ -79,27 +66,6 @@ public abstract class DaciukAlgo {
 	 * @param state state index
 	 */
 	public abstract void removeState(int state);
-	/**
-	 * Computes hash code of the state on:
- 	 * <ul>
-	 * <li> transitions
-	 * <li> final features
-	 * </ul>
-	 * @param state
-	 * @return
-	 */
-	public abstract int hash(int state);
-	/**
-	 * Checks for state equality. Checks
-	 * <ul>
-	 * <li> transitions
-	 * <li> final features
-	 * </ul>
-	 * @param state1
-	 * @param state2
-	 * @return
-	 */
-	public abstract boolean equals(int state1, int state2);
 		
 	/**
 	 * public set final feature for state
@@ -117,26 +83,30 @@ public abstract class DaciukAlgo {
 	public abstract boolean isFinal(int state);
 	
 	protected int startState;
-	protected Register register = new Register();
-	int counterRegAdd;
-	int counterRegRemove;
-	int counterRegGet;
 
+
+	/**
+	 * Add state to register
+	 * 
+	 * @param state
+	 */
+	public abstract void regAdd(int state);
+
+	/**
+	 * Get equivalent state from register
+	 * 
+	 * @param state reference state
+	 * 
+	 * @return number of registered state, or -1 (INVALID_STATE) if no such state exist
+	 */
+	public abstract int regGet(int state);
 	
-	public void regAdd(int state) {
-		counterRegAdd++;
-		register.add(state);
-	}
-	
-	public int regGet(int state) {
-		counterRegGet++;
-		return register.get(state);
-	}
-	
-	public void regRemove(int state) {
-		counterRegRemove++;
-		register.remove(state);
-	}
+	/**
+	 * Remove given state from register. Removes exact state not equivalent one.
+	 * 
+	 * @param state state to remove
+	 */
+	public abstract void regRemove(int state);
 	
 	/**
 	 * Add suffix to given new state
