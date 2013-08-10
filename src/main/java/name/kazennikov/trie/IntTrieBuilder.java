@@ -3,6 +3,7 @@ package name.kazennikov.trie;
 import gnu.trove.iterator.TIntIterator;
 import gnu.trove.iterator.TIntObjectIterator;
 import gnu.trove.list.array.TIntArrayList;
+import gnu.trove.list.array.TLongArrayList;
 import gnu.trove.procedure.TIntProcedure;
 import gnu.trove.set.hash.TIntHashSet;
 
@@ -14,10 +15,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
 
-import name.kazennikov.dafsa.DaciukAlgo;
+import name.kazennikov.dafsa.ng.GenericRegister;
+import name.kazennikov.dafsa.ng.IntDaciukAlgoIndexed;
 
-public class DaciukTest extends DaciukAlgo {
-	Register r = new Register();
+public class IntTrieBuilder extends IntDaciukAlgoIndexed {
+	GenericRegister<Node> r = new GenericRegister<Node>();
 	
 	@Override
 	public void regAdd(int state) {
@@ -28,6 +30,7 @@ public class DaciukTest extends DaciukAlgo {
 	@Override
 	public int regGet(int state) {
 		Node n = r.get(nodes.get(state));
+		
 		if(n == null)
 			return INVALID_STATE;
 
@@ -39,16 +42,15 @@ public class DaciukTest extends DaciukAlgo {
 		r.remove(nodes.get(state));
 
 	}
-
+	
 	/**
 	 * Int-type node with trove structures as outbound table
 	 * @author Anton Kazennikov
 	 *
 	 */
-	public static class Node {
+	public class Node {
 		TIntHashSet fin = new TIntHashSet();
-		TIntArrayList outChars = new TIntArrayList();
-		List<Node> outNodes = new ArrayList<Node>();
+		TLongArrayList next = new TLongArrayList();
 
 		int inbound;
 		int number;
@@ -68,45 +70,60 @@ public class DaciukTest extends DaciukAlgo {
 			return number;
 		}
 		
+		private long encode(int input, int next) {
+			long k = input;
+			k <<= 32;
+			k += next;
+			return k;
+		}
+		
+		private int label(long val) {
+			return (int)(val >>> 32);
+		}
+		
+		private int dest(long val) {
+			return (int) (val & 0xFFFFFFFFL);
+		}
+		
 		int findIndex(int input) {
-			for(int i = 0; i != outChars.size(); i++) {
-				if(outChars.get(i) == input)
+			for(int i = 0; i != next.size(); i++) {
+				if(label(next.get(i)) == input)
 					return i;
 			}
 
 			return -1;
 		}
 		
-		public Node getNext(int input) {
-			for(int i = 0; i != outChars.size(); i++) {
-				if(outChars.get(i) == input)
-					return outNodes.get(i);
-			}
-			return null;
+		public int getNext(int input) {
+			int index = findIndex(input);
+			if(index == -1)
+				return INVALID_STATE;
+			
+			return dest(next.get(index));
 		}
 		
 		
 
-		public void setNext(int input, Node next) {
+		public void setNext(int input, int next) {
 			int index = findIndex(input);
 			
 			if(index != -1) {
-				outNodes.get(index).removeInbound(input, this);
+				Node n = nodes.get(dest(this.next.get(index)));
+				n.removeInbound(input, this);
 			}
 			
 			
 			
-			if(next != null) {
+			if(next != INVALID_STATE) {
 				if(index == -1) {
-					outChars.add(input);
-					outNodes.add(next);
+					this.next.add(encode(input, next));
 				} else {
-					outNodes.set(index, next);
+					this.next.set(index, encode(input, next));
 				}
-				next.addInbound(input, this);
+				Node n = nodes.get(next);
+				n.addInbound(input, this);
 			} else if(index != -1) {
-				outChars.removeAt(index);
-				outNodes.remove(index);
+				this.next.removeAt(index);
 			}
 			
 			validHashCode = false;
@@ -131,7 +148,7 @@ public class DaciukTest extends DaciukAlgo {
 
 		
 		public int outbound() {
-			return outChars.size();
+			return next.size();
 		}
 		
 
@@ -166,19 +183,12 @@ public class DaciukTest extends DaciukAlgo {
 			int result = 1;
 			result = prime * result + ((fin == null)? 0 : fin.hashCode());
 
-			if(outChars == null) {
-				result = prime * result;
-			} else {
-				
-				for(int i = 0; i != outChars.size(); i++) {
-					if(outChars.get(i) == 0)
-						continue;
-					
-					result += outChars.get(i);
-					result += System.identityHashCode(outNodes.get(i));
-				}
+			for(int i = 0; i != next.size(); i++) {
+				result += label(next.get(i));
+				result += dest(next.get(i));
+
 			}
-			
+
 			return result;
 		}
 
@@ -216,15 +226,15 @@ public class DaciukTest extends DaciukAlgo {
 				return false;
 			else {
 
-				if(outChars.size() != other.outChars.size())
+				if(next.size() != other.next.size())
 					return false;
 				
 				for(int i = 0; i != outbound(); i++) {
-					int otherIndex = other.findIndex(outChars.get(i));
+					int otherIndex = other.findIndex(label(next.get(i)));
 					if(otherIndex == -1)
 						return false;
 					
-					if(outNodes.get(i) !=other.outNodes.get(otherIndex))
+					if(dest(next.get(i)) != dest(other.next.get(otherIndex)))
 						return false;
 				}
 			}
@@ -232,36 +242,17 @@ public class DaciukTest extends DaciukAlgo {
 			return true;
 		}
 
-		public Node makeNode() {
-			return new Node();
-		}
-		
-
-		public Node cloneNode() {
-			final Node node = makeNode();
-			
-			node.fin.addAll(this.fin);
-			
-			for(int i = 0; i != outbound(); i++) {
-				node.outChars.add(outChars.get(i));
-				node.outNodes.add(outNodes.get(i));
-			}
-			
-			return node;
-		}
-
 		public void reset() {
 			fin.clear();
 			
 			for(int i = 0; i != outbound(); i++) {
-				int input = outChars.get(i);
-				Node next = outNodes.get(i);
+				int input = label(next.get(i));
+				Node next = nodes.get(dest(this.next.get(i)));
 				
 				next.removeInbound(input, this);
 			}
 			
-			outChars.reset();
-			outNodes.clear();
+			next.clear();
 		}
 
 		public TIntObjectIterator<Node> next() {
@@ -275,7 +266,7 @@ public class DaciukTest extends DaciukAlgo {
 				
 				@Override
 				public boolean hasNext() {
-					return pos < outChars.size();
+					return pos < next.size();
 				}
 				
 				@Override
@@ -285,7 +276,7 @@ public class DaciukTest extends DaciukAlgo {
 				
 				@Override
 				public Node value() {
-					return outNodes.get(pos);
+					return nodes.get(dest(next.get(pos)));
 				}
 				
 				@Override
@@ -295,34 +286,11 @@ public class DaciukTest extends DaciukAlgo {
 				
 				@Override
 				public int key() {
-					return outChars.get(pos);
+					return label(next.get(pos));
 				}
 			};
 		}
 		
-		public boolean equiv(Node node) {
-			if(!node.getFinal().equals(fin))
-				return false;
-			
-			
-			if(outbound() != node.outbound())
-				return false;
-			
-			for(int i = 0; i != outbound(); i++) {
-				int input = outChars.get(i);
-				Node next = outNodes.get(i);
-				Node otherNext = node.getNext(input);
-				if(otherNext == null)
-					return false;
-				
-				if(!next.equiv(otherNext))
-					return false;
-				
-			}
-			
-			return true;
-			
-		}
 
 		public Node assign(final Node node) {
 			
@@ -336,8 +304,8 @@ public class DaciukTest extends DaciukAlgo {
 			});
 			
 			
-			for(int i = 0; i != outChars.size(); i++) {
-				node.setNext(outChars.get(i), outNodes.get(i));
+			for(int i = 0; i != next.size(); i++) {
+				node.setNext(label(next.get(i)), dest(next.get(i)));
 			}
 
 			return node;
@@ -351,19 +319,19 @@ public class DaciukTest extends DaciukAlgo {
 
 	}
 	
-	List<Node> nodes = new ArrayList<DaciukTest.Node>();
-	Stack<Node> free = new Stack<DaciukTest.Node>();
+	List<Node> nodes = new ArrayList<IntTrieBuilder.Node>();
+	Stack<Node> free = new Stack<IntTrieBuilder.Node>();
 		
-	public DaciukTest() {
+	public IntTrieBuilder() {
 		startState = addState();
 	}
 
 	@Override
 	public int getNext(int state, int input) {
 		Node n = nodes.get(state);
-		n = n.getNext(input);
+		int next = n.getNext(input);
 		
-		return n == null? INVALID_STATE : n.getNumber();
+		return next;
 	}
 
 	@Override
@@ -396,7 +364,7 @@ public class DaciukTest extends DaciukAlgo {
 	@Override
 	public boolean setNext(int src, int label, int dest) {
 		Node n = nodes.get(src);
-		n.setNext(label, nodes.get(dest));
+		n.setNext(label, dest);
 		return false;
 	}
 
@@ -433,7 +401,7 @@ public class DaciukTest extends DaciukAlgo {
 		
 		for(Node n : nodes) {
 			for(int i = 0; i < n.outbound(); i++) {
-				pw.printf("%d -> %d [label=\"%s\"];%n", n.number, n.outNodes.get(i).getNumber(), "" + ((char) n.outChars.get(i)));
+				pw.printf("%d -> %d [label=\"%s\"];%n", n.number, n.dest(n.next.get(i)), "" + ((char) n.label(n.next.get(i))));
 			}
 
 			if(n.isFinal()) {
@@ -500,19 +468,16 @@ public class DaciukTest extends DaciukAlgo {
 
 	
 	public static void main(String... args) throws IOException {
-		DaciukTest fsa = new DaciukTest();
+		IntTrieBuilder fsa = new IntTrieBuilder();
 		
 		fsa.addMinWord(str("fox"));
 		fsa.toDot("001.dot");
-		fsa.setFinalValue(1);
-		fsa.addMinWord(str("fox"));
+		//fsa.setFinalValue(1);
+		fsa.addMinWord(str("box"));
 		fsa.toDot("002.dot");
 		
 	}
 	
-	public int regSize() {
-		return r.m.size();
-	}
 
 
 }
