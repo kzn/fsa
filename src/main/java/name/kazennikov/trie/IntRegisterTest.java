@@ -1,6 +1,5 @@
 package name.kazennikov.trie;
 
-import name.kazennikov.dafsa.ng.IntRegister;
 
 public class IntRegisterTest {
 	public static class TestRegister extends IntRegister {

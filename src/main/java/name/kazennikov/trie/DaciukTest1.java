@@ -14,9 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
-import name.kazennikov.dafsa.ng.GenericRegister;
-import name.kazennikov.dafsa.ng.IntDaciukAlgoObject;
-
 public class DaciukTest1 extends IntDaciukAlgoObject<DaciukTest1.Node> {
 	
 	GenericRegister<Node> r = new GenericRegister<Node>();

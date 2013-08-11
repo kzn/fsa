@@ -15,8 +15,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
 
-import name.kazennikov.dafsa.ng.GenericRegister;
-import name.kazennikov.dafsa.ng.IntDaciukAlgoIndexed;
 import name.kazennikov.fsm.Constants;
 
 public class IntTrieBuilder extends IntDaciukAlgoIndexed {
