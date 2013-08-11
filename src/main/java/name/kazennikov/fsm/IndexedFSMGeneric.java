@@ -20,34 +20,35 @@ import java.util.Set;
 
 import com.google.common.base.Objects;
 
-public class IndexedFSM {
-	public static class State {
+public class IndexedFSMGeneric<E> {
+	
+	public static class State<E1> {
 		int number;
-		List<Transition> transitions = new ArrayList<Transition>();
-		TIntSet finals;
+		List<Transition<E1>> transitions = new ArrayList<Transition<E1>>();
+		Set<E1> finals = new HashSet<>();
 
 		public boolean isFinal() {
 			return !finals.isEmpty();
 		}
 
-		public Transition addTransition(State to, int label) {
-			Transition t = new Transition(this, label, to);
+		public Transition<E1> addTransition(State<E1> to, int label) {
+			Transition<E1> t = new Transition<E1>(this, label, to);
 			transitions.add(t);
 			return t;
 		}
 
 
-		public void toDot(PrintWriter pw, Set<State> visited) {
+		public void toDot(PrintWriter pw, Set<State<E1>> visited) {
 			if(visited.contains(this))
 				return;
 
 			visited.add(this);
 
-			for(Transition t : transitions) {
+			for(Transition<E1> t : transitions) {
 				pw.printf("%d -> %d [label=\"%d\"];%n", number, t.dest.number, t.label);
 			}
 
-			for(Transition t : transitions) {
+			for(Transition<E1> t : transitions) {
 				t.dest.toDot(pw, visited);
 			}
 
@@ -66,11 +67,11 @@ public class IndexedFSM {
 					.toString();
 		}
 		
-		public List<Transition> getTransitions() {
+		public List<Transition<E1>> getTransitions() {
 			return transitions;
 		}
 		
-		public TIntSet getFinals() {
+		public Set<E1> getFinals() {
 			return finals;
 		}
 		
@@ -79,8 +80,8 @@ public class IndexedFSM {
 		}
 				
 		
-		public void setFinalFrom(Set<State> currentDState) {
-			for(State c : currentDState) {
+		public void setFinalFrom(Set<State<E1>> currentDState) {
+			for(State<E1> c : currentDState) {
 				if(c.isFinal()) {
 					this.finals.addAll(c.finals);
 				}
@@ -88,23 +89,31 @@ public class IndexedFSM {
 		}
 	}
 	
-	public static class Transition {
-		State src;
+	public static class Transition<E1> {
+		/**
+		 * Encoding:
+		 * <ul>
+		 * <li> label > 0 - AnnotationMatcher table lookup
+		 * <li> label = 0 - epsilon
+		 * <li> label = -1 - GROUP_START
+		 * <li> label < -1 - named group lookup
+		 */
+		State<E1> src;
 		int label;
-		State dest;
+		State<E1> dest;
 		
-		public Transition(State src, int label, State dest) {
+		public Transition(State<E1> src, int label, State<E1> dest) {
 			this.src = src;
 			this.label = label;
 			this.dest = dest;
 		}
 		
 		
-		public State getSrc() {
+		public State<E1> getSrc() {
 			return src;
 		}
 		
-		public State getDest() {
+		public State<E1> getDest() {
 			return dest;
 		}
 		
@@ -125,8 +134,8 @@ public class IndexedFSM {
 	}
 
 
-	List<State> states = new ArrayList<State>();	
-	List<Transition> transitions = new ArrayList<Transition>();
+	List<State<E>> states = new ArrayList<State<E>>();	
+	List<Transition<E>> transitions = new ArrayList<Transition<E>>();
 	
 	TIntArrayList tFrom = new TIntArrayList();
 	TIntArrayList tTo = new TIntArrayList();
@@ -134,23 +143,23 @@ public class IndexedFSM {
 	
 	
 	
-	State start;
+	State<E> start;
 	
-	public IndexedFSM() {
+	public IndexedFSMGeneric() {
 		this.start = addState();
 	}
 	
 	
-	public State addState() {
-		State state = new State();
+	public State<E> addState() {
+		State<E> state = new State<E>();
 		state.number = states.size();
 		states.add(state);
 		return state;
 	}
 	
 	
-	public void addTransition(State from, State to, int label) {
-		Transition t = from.addTransition(to, label);
+	public void addTransition(State<E> from, State<E> to, int label) {
+		Transition<E> t = from.addTransition(to, label);
 		transitions.add(t);
 		
 		tFrom.add(from.number);
@@ -165,8 +174,8 @@ public class IndexedFSM {
 		pw.println("rankdir=LR;");
 		pw.println("node [shape=circle]");
 		
-		for(State s : states) {
-			for(Transition t : s.transitions) {
+		for(State<E> s : states) {
+			for(Transition<E> t : s.transitions) {
 				pw.printf("%d -> %d [label=\"%d\"];%n", t.src.number, t.dest.number, t.label);
 			}
 
@@ -185,15 +194,15 @@ public class IndexedFSM {
 		pw.close();
 	}
 	
-	public Set<State> lambdaClosure(Set<State> states) {
-		LinkedList<State> list = new LinkedList<State>(states);
-		Set<State> closure = new HashSet<State>(states);
+	public Set<State<E>> lambdaClosure(Set<State<E>> states) {
+		LinkedList<State<E>> list = new LinkedList<State<E>>(states);
+		Set<State<E>> closure = new HashSet<State<E>>(states);
 
 		while(!list.isEmpty()) {
-			State current = list.removeFirst();
-			for(Transition t : current.transitions) {
+			State<E> current = list.removeFirst();
+			for(Transition<E> t : current.transitions) {
 				if(t.isEpsilon()) {
-					State target = t.dest;
+					State<E> target = t.dest;
 					if(!closure.contains(target)) {
 						closure.add(target);
 						list.addFirst(target);
@@ -204,11 +213,11 @@ public class IndexedFSM {
 		return closure;
 	}
 	
-	private TIntSet labels(Set<State> states) {
+	private TIntSet labels(Set<State<E>> states) {
 		TIntHashSet set = new TIntHashSet();
 		
-		for(State s : states) {
-			for(Transition t : s.transitions) {
+		for(State<E> s : states) {
+			for(Transition<E> t : s.transitions) {
 				if(!t.isEpsilon())
 					set.add(t.label);
 			}
@@ -217,11 +226,11 @@ public class IndexedFSM {
 		return set;
 	}
 	
-	private Set<State> next(Set<State> states, int label) {
-		Set<State> next = new HashSet<State>();
+	private Set<State<E>> next(Set<State<E>> states, int label) {
+		Set<State<E>> next = new HashSet<State<E>>();
 		
-		for(State s : states) {
-			for(Transition t : s.transitions) {
+		for(State<E> s : states) {
+			for(Transition<E> t : s.transitions) {
 				if(t.label == label)
 					next.add(t.dest);
 			}
@@ -231,14 +240,14 @@ public class IndexedFSM {
 	}
 	
 	
-	public void determinize(IndexedFSM fsm) {
+	public void determinize(IndexedFSMGeneric<E> fsm) {
 		
 		
-		Map<Set<State>, State> newStates = new HashMap<Set<State>, State>();
-		Set<Set<State>> dStates = new HashSet<Set<State>>();
-		LinkedList<Set<State>> unmarkedDStates = new LinkedList<Set<State>>();
+		Map<Set<State<E>>, State<E>> newStates = new HashMap<Set<State<E>>, State<E>>();
+		Set<Set<State<E>>> dStates = new HashSet<Set<State<E>>>();
+		LinkedList<Set<State<E>>> unmarkedDStates = new LinkedList<Set<State<E>>>();
 		
-		Set<State> currentDState = new HashSet<State>();
+		Set<State<E>> currentDState = new HashSet<State<E>>();
 
 
 		currentDState.add(start);
@@ -254,20 +263,20 @@ public class IndexedFSM {
 			TIntSet labels = labels(currentDState);
 
 			for(int label : labels.toArray()) {
-				Set<State> next = next(currentDState, label);
+				Set<State<E>> next = next(currentDState, label);
 				next = lambdaClosure(next);
 
 				// add new state to epsilon-free automaton
 				if(!dStates.contains(next)) {
 					dStates.add(next);
 					unmarkedDStates.add(next);
-					State newState = fsm.addState();
+					State<E> newState = fsm.addState();
 					newStates.put(next, newState);
 					newState.setFinalFrom(next);
 				}
 
-				State currentState = newStates.get(currentDState);
-				State newState = newStates.get(next);
+				State<E> currentState = newStates.get(currentDState);
+				State<E> newState = newStates.get(next);
 				fsm.addTransition(currentState, newState, label);
 			}
 		}
@@ -279,12 +288,12 @@ public class IndexedFSM {
 	 * 
 	 * @return fresh epsilon free NFA
 	 */
-	public void epsilonFreeFSM(IndexedFSM fsm) {
+	public void epsilonFreeFSM(IndexedFSMGeneric<E> fsm) {
 
-		Map<Set<State>, State> newStates = new HashMap<Set<State>, State>();
-		Set<Set<State>> dStates = new HashSet<Set<State>>();
-		LinkedList<Set<State>> unmarkedDStates = new LinkedList<Set<State>>();
-		Set<State> currentDState = new HashSet<State>();
+		Map<Set<State<E>>, State<E>> newStates = new HashMap<Set<State<E>>, State<E>>();
+		Set<Set<State<E>>> dStates = new HashSet<Set<State<E>>>();
+		LinkedList<Set<State<E>>> unmarkedDStates = new LinkedList<Set<State<E>>>();
+		Set<State<E>> currentDState = new HashSet<State<E>>();
 
 
 		currentDState.add(start);
@@ -299,16 +308,16 @@ public class IndexedFSM {
 		while(!unmarkedDStates.isEmpty()) {
 			currentDState = unmarkedDStates.removeFirst();
 
-			for(State state: currentDState) {
-				for(Transition t : state.transitions) {
+			for(State<E> state: currentDState) {
+				for(Transition<E> t : state.transitions) {
 
 					// skip epsilon transitions
 					if(t.isEpsilon())
 						continue;
 
 
-					State target = t.dest;
-					Set<State> newDState = new HashSet<State>();
+					State<E> target = t.dest;
+					Set<State<E>> newDState = new HashSet<State<E>>();
 					newDState.add(target);
 					newDState = lambdaClosure(newDState);
 
@@ -316,13 +325,13 @@ public class IndexedFSM {
 					if(!dStates.contains(newDState)) {
 						dStates.add(newDState);
 						unmarkedDStates.add(newDState);
-						State newState = fsm.addState();
+						State<E> newState = fsm.addState();
 						newStates.put(newDState, newState);
 						newState.setFinalFrom(newDState);
 					}
 
-					State currentState = newStates.get(currentDState);
-					State newState = newStates.get(newDState);
+					State<E> currentState = newStates.get(currentDState);
+					State<E> newState = newStates.get(newDState);
 					fsm.addTransition(currentState, newState, t.label);
 				}
 			}
@@ -330,7 +339,7 @@ public class IndexedFSM {
 		}
 	}
 	
-	public State getStart() {
+	public State<E> getStart() {
 		return start;
 	}
 	
@@ -338,13 +347,13 @@ public class IndexedFSM {
 		return states.size();
 	}
 	
-	public void rev(IndexedFSM fsm) {
+	public void rev(IndexedFSMGeneric<E> fsm) {
 		
-		List<State> finals = new ArrayList<State>();
+		List<State<E>> finals = new ArrayList<State<E>>();
 
 		for(int i = 0; i < states.size(); i++ ) {
-			State s = fsm.addState();
-			State s0 = states.get(i);
+			State<E> s = fsm.addState();
+			State<E> s0 = states.get(i);
 
 			if(s0.isFinal()) {
 				s.finals = s0.finals;
@@ -354,22 +363,22 @@ public class IndexedFSM {
 		
 		
 		for(int i = 0; i < tFrom.size(); i++) {
-			State from = fsm.states.get(tTo.get(i) + 1);
+			State<E> from = fsm.states.get(tTo.get(i) + 1);
 			int label = tLabel.get(i);
-			State to = fsm.states.get(tFrom.get(i) + 1);
+			State<E> to = fsm.states.get(tFrom.get(i) + 1);
 			fsm.addTransition(from, to, label);
 		}
 		
-		for(State f : finals) {
+		for(State<E> f : finals) {
 			fsm.addTransition(fsm.start, f, Constants.EPSILON);
 		}
 		
 	}
 	
-	public List<State> finals() {
-		List<State> finals = new ArrayList<State>();
+	public List<State<E>> finals() {
+		List<State<E>> finals = new ArrayList<State<E>>();
 		
-		for(State s : states) {
+		for(State<E> s : states) {
 			if(s.isFinal())
 				finals.add(s);
 		}
@@ -381,13 +390,13 @@ public class IndexedFSM {
 	
 	
 	private void trReverse() {
-		for(State s : states) {
+		for(State<E> s : states) {
 			s.transitions.clear();
 		}
 	
 		
-		for(Transition t : transitions) {
-			State temp = t.dest;
+		for(Transition<E> t : transitions) {
+			State<E> temp = t.dest;
 			t.dest = t.src;
 			t.src = temp;
 			
@@ -399,10 +408,10 @@ public class IndexedFSM {
 	}
 	
 	private void trSort() {
-		Collections.sort(transitions, new Comparator<Transition>() {
+		Collections.sort(transitions, new Comparator<Transition<E>>() {
 
 			@Override
-			public int compare(Transition o1, Transition o2) {
+			public int compare(Transition<E> o1, Transition<E> o2) {
 				int res = Integer.compare(o1.src.number, o2.src.number);
 				if(res != 0)
 					return res;
@@ -551,7 +560,7 @@ public class IndexedFSM {
 			labelsMap.put(0, 0);
 			
 			// map labels to [0 ... n] values for correct algorithm work
-			for(Transition t : transitions) {
+			for(Transition<E> t : transitions) {
 				
 				if(!labelsMap.containsKey(t.label)) {
 					int label = labelsMap.size();
@@ -574,7 +583,7 @@ public class IndexedFSM {
 				}
 			});
 			
-			for(Transition t : transitions) {
+			for(Transition<E> t : transitions) {
 				t.label = map.get(t.label);
 			}
 		}
@@ -591,7 +600,7 @@ public class IndexedFSM {
 		public int[] finalties() {
 			int[] finalties = new int[states.size()];
 			for(int state = 0; state < states.size(); state++) {
-				State s = states.get(state);
+				State<E> s = states.get(state);
 				finalties[state] = -1;
 				if (s.isFinal()) {
 					finalties[state] = s.number;
@@ -673,9 +682,9 @@ public class IndexedFSM {
 			 * Группируем переходы в q1 по a. по различным классам
 			 */
 			for(int state = data.classesFirstState[q1]; state != Constants.NO; state = data.statesNext[state]) {
-				State s = this.states.get(state);
+				State<E> s = this.states.get(state);
 
-				for(Transition t : s.transitions) {
+				for(Transition<E> t : s.transitions) {
 					if(t.label == a) {
 						int q0 = data.statesClassNumber[t.dest.getNumber()];
 						states.add(t.dest.getNumber());
@@ -745,7 +754,7 @@ public class IndexedFSM {
 		return data;
 	}
 	
-	public void minimize(IndexedFSM fsm) {
+	public void minimize(IndexedFSMGeneric<E> fsm) {
 		AutomatonMinimizationData data = hopcroftMinimize();
 		
 		if (data.classesStored == 0) {
@@ -763,14 +772,14 @@ public class IndexedFSM {
 		// add transitions
 		for (int i = 0; i < data.classesStored; i++) {
 			int state = data.classesFirstState[i];
-			State s = states.get(state);
+			State<E> s = states.get(state);
 
 			// set start state
 			if(s.number == 0) {
 				fsm.start = fsm.states.get(i);
 			}
 			
-			for(Transition t : s.transitions) {
+			for(Transition<E> t : s.transitions) {
 				fsm.addTransition(fsm.states.get(i), fsm.states.get(data.statesClassNumber[t.dest.number]), t.label);
 			}
 		}
@@ -778,9 +787,9 @@ public class IndexedFSM {
 		// add finals
 		for(int i = 0; i < data.classesStored; i++) {
 			int state = data.classesFirstState[i];
-			State s0 = states.get(state);
+			State<E> s0 = states.get(state);
 
-			State s = fsm.states.get(i);
+			State<E> s = fsm.states.get(i);
 			
 			if(s0.isFinal()) {
 				s.finals.addAll(s0.finals);
@@ -789,6 +798,8 @@ public class IndexedFSM {
 
 				
 	}
+
+
 
 
 }
