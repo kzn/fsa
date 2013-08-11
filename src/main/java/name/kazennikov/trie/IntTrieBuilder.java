@@ -17,6 +17,7 @@ import java.util.Stack;
 
 import name.kazennikov.dafsa.ng.GenericRegister;
 import name.kazennikov.dafsa.ng.IntDaciukAlgoIndexed;
+import name.kazennikov.fsm.Constants;
 
 public class IntTrieBuilder extends IntDaciukAlgoIndexed {
 	GenericRegister<Node> r = new GenericRegister<Node>();
@@ -32,7 +33,7 @@ public class IntTrieBuilder extends IntDaciukAlgoIndexed {
 		Node n = r.get(nodes.get(state));
 		
 		if(n == null)
-			return INVALID_STATE;
+			return Constants.INVALID_STATE;
 
 		return n.getNumber();
 	}
@@ -97,7 +98,7 @@ public class IntTrieBuilder extends IntDaciukAlgoIndexed {
 		public int getNext(int input) {
 			int index = findIndex(input);
 			if(index == -1)
-				return INVALID_STATE;
+				return Constants.INVALID_STATE;
 			
 			return dest(next.get(index));
 		}
@@ -114,7 +115,7 @@ public class IntTrieBuilder extends IntDaciukAlgoIndexed {
 			
 			
 			
-			if(next != INVALID_STATE) {
+			if(next != Constants.INVALID_STATE) {
 				if(index == -1) {
 					this.next.add(encode(input, next));
 				} else {

@@ -2,6 +2,7 @@ package name.kazennikov.trie;
 
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
+import name.kazennikov.fsm.Constants;
 
 /**
  * Generic algorithm for constructing minimal AFSA (acyclic finite state automata) or minimial
@@ -11,8 +12,6 @@ import gnu.trove.list.array.TIntArrayList;
  *
  */
 public abstract class IntDaciukAlgoIndexed {
-	public static final int INVALID_STATE = -1;
-		
 	/**
 	 * Find matching outbound transition for given state
 	 * @param state source state
@@ -154,7 +153,7 @@ public abstract class IntDaciukAlgoIndexed {
 			int in = seq.get(i);
 			int next = getNext(current, in);
 
-			if(next == INVALID_STATE)
+			if(next == Constants.INVALID_STATE)
 				break;
 
 			current = next;
@@ -237,7 +236,7 @@ public abstract class IntDaciukAlgoIndexed {
 			if(regNode == n) {
 				if(idx < stop)
 					return;
-			} else if(regNode == INVALID_STATE) {
+			} else if(regNode == Constants.INVALID_STATE) {
 				regAdd(n);
 			} else {
 				int in = input.get(inIdx);
@@ -259,7 +258,7 @@ public abstract class IntDaciukAlgoIndexed {
 
 		while(idx < seq.size()) {
 			int n = getNext(current, seq.get(idx));
-			if(n == INVALID_STATE)
+			if(n == Constants.INVALID_STATE)
 				break;
 
 			idx++;

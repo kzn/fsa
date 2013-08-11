@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
+import name.kazennikov.fsm.Constants;
+
 public abstract class BaseIntTrieBuilder extends IntDaciukAlgoIndexed {
 	
 	public abstract class BaseNode {
@@ -58,7 +60,7 @@ public abstract class BaseIntTrieBuilder extends IntDaciukAlgoIndexed {
 		public int getNext(int input) {
 			int index = findIndex(input);
 			if(index == -1)
-				return INVALID_STATE;
+				return Constants.INVALID_STATE;
 			
 			return dest(next.get(index));
 		}
@@ -75,7 +77,7 @@ public abstract class BaseIntTrieBuilder extends IntDaciukAlgoIndexed {
 			
 			
 			
-			if(next != INVALID_STATE) {
+			if(next != Constants.INVALID_STATE) {
 				if(index == -1) {
 					this.next.add(encode(input, next));
 				} else {
@@ -248,7 +250,7 @@ public abstract class BaseIntTrieBuilder extends IntDaciukAlgoIndexed {
 		BaseNode n = r.get(nodes.get(state));
 		
 		if(n == null)
-			return INVALID_STATE;
+			return Constants.INVALID_STATE;
 
 		return n.getNumber();
 	}
