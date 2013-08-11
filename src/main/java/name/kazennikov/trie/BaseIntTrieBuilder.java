@@ -4,8 +4,9 @@ import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.list.array.TLongArrayList;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Stack;
+import java.util.PriorityQueue;
 
 import name.kazennikov.fsm.Constants;
 
@@ -267,7 +268,14 @@ public abstract class BaseIntTrieBuilder extends IntDaciukAlgoIndexed {
 	}
 	
 	List<BaseNode> nodes = new ArrayList<BaseNode>();
-	Stack<BaseNode> free = new Stack<BaseNode>();
+	//Stack<BaseNode> free = new Stack<BaseNode>();
+	PriorityQueue<BaseNode> free = new PriorityQueue<>(10, new Comparator<BaseNode>() {
+
+		@Override
+		public int compare(BaseNode o1, BaseNode o2) {
+			return o1.number - o2.number;
+		}
+	});
 	int startState;
 	
 	public BaseIntTrieBuilder() {
@@ -302,7 +310,7 @@ public abstract class BaseIntTrieBuilder extends IntDaciukAlgoIndexed {
 	@Override
 	public int addState() {
 		if(!free.isEmpty())
-			return free.pop().getNumber();
+			return free.poll().getNumber();
 		
 		BaseNode n = newNode();
 		n.number = nodes.size();
@@ -322,7 +330,7 @@ public abstract class BaseIntTrieBuilder extends IntDaciukAlgoIndexed {
 	public void removeState(int state) {
 		BaseNode n = nodes.get(state);
 		n.reset();
-		free.push(n);
+		free.add(n);
 	}
 
 	
