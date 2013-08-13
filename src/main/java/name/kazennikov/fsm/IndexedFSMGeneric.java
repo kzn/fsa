@@ -9,6 +9,7 @@ import gnu.trove.set.hash.TIntHashSet;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -23,12 +24,20 @@ import com.google.common.base.Objects;
 public class IndexedFSMGeneric<E> {
 	
 	public static class State<E1> {
+		IndexedFSMGeneric<E1> fsm;
 		int number;
 		List<Transition<E1>> transitions = new ArrayList<Transition<E1>>();
-		Set<E1> finals = new HashSet<>();
+		E1 finals;
+		
+		public State(IndexedFSMGeneric<E1> fsm) {
+			this.fsm = fsm;
+		}
 
 		public boolean isFinal() {
-			return !finals.isEmpty();
+			return fsm.isFinal(this);
+		}
+		public void setFinals(E1 finals) {
+			this.finals = finals;
 		}
 
 		public Transition<E1> addTransition(State<E1> to, int label) {
@@ -90,7 +99,7 @@ public class IndexedFSMGeneric<E> {
 			return transitions;
 		}
 		
-		public Set<E1> getFinals() {
+		public E1 getFinals() {
 			return finals;
 		}
 		
@@ -99,11 +108,9 @@ public class IndexedFSMGeneric<E> {
 		}
 				
 		
-		public void setFinalFrom(Set<State<E1>> currentDState) {
-			for(State<E1> c : currentDState) {
-				if(c.isFinal()) {
-					this.finals.addAll(c.finals);
-				}
+		public void setFinalFrom(Collection<State<E1>> currentDState) {
+			for(State<E1> s : currentDState) {
+				fsm.mergeFinals(this, s);
 			}
 		}
 	}
@@ -170,7 +177,7 @@ public class IndexedFSMGeneric<E> {
 	
 	
 	public State<E> addState() {
-		State<E> state = new State<E>();
+		State<E> state = new State<E>(this);
 		state.number = states.size();
 		states.add(state);
 		return state;
@@ -811,11 +818,19 @@ public class IndexedFSMGeneric<E> {
 			State<E> s = fsm.states.get(i);
 			
 			if(s0.isFinal()) {
-				s.finals.addAll(s0.finals);
+				mergeFinals(s, s0);
 			}
 		}
 
 				
+	}
+
+
+	public void mergeFinals(State<E> dest, State<E> src) {
+	}
+	
+	public boolean isFinal(State<E> s) {
+		return s.finals != null;
 	}
 
 
