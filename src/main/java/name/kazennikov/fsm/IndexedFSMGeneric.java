@@ -36,6 +36,25 @@ public class IndexedFSMGeneric<E> {
 			transitions.add(t);
 			return t;
 		}
+		
+		/**
+		 * Get next state from this one on given input (threat the state transitions deterministically)
+		 * This means that only the first matched input is returned
+		 * 
+		 * @param input input symbol
+		 * 
+		 * @return next state, or null if there is no such transition
+		 */
+		public State<E1> next(int input) {
+			for(int i = 0; i < transitions.size(); i++) {
+				Transition<E1> t = transitions.get(i);
+				
+				if(t.label == input)
+					return t.dest;
+			}
+			
+			return null;
+		}
 
 
 		public void toDot(PrintWriter pw, Set<State<E1>> visited) {
@@ -136,7 +155,7 @@ public class IndexedFSMGeneric<E> {
 
 	List<State<E>> states = new ArrayList<State<E>>();	
 	List<Transition<E>> transitions = new ArrayList<Transition<E>>();
-	
+	// используются сейчас только в rev()
 	TIntArrayList tFrom = new TIntArrayList();
 	TIntArrayList tTo = new TIntArrayList();
 	TIntArrayList tLabel = new TIntArrayList();
