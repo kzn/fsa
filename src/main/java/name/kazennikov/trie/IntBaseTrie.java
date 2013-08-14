@@ -58,6 +58,14 @@ public class IntBaseTrie {
 		return Constants.INVALID_STATE;
 	}
 	
+	public int stateStart(int state) {
+		return stateStart.get(state);
+	}
+	
+	public int stateEnd(int state) {
+		return stateEnd.get(state);
+	}
+	
 	
 
 }

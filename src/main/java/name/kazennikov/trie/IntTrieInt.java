@@ -6,6 +6,7 @@ import name.kazennikov.fsm.Constants;
 public class IntTrieInt extends IntBaseTrie {
 	
 	TIntObjectHashMap<int[]> finals = new TIntObjectHashMap<>();
+	public static final int[] EMPTY = new int[0];
 	
 	public IntTrieInt(IntTrieBuilderInt builder) {
 		super(builder);
@@ -20,7 +21,8 @@ public class IntTrieInt extends IntBaseTrie {
 	}
 	
 	public int[] getFinals(int state) {
-		return finals.get(state);
+		int[] fin = finals.get(state);
+		return fin != null? fin : EMPTY;
 	}
 	
 	public int[] walk(String s) {
@@ -28,7 +30,7 @@ public class IntTrieInt extends IntBaseTrie {
 		for(int i = 0; i < s.length(); i++) {
 			state = next(state, s.charAt(i));
 			if(state == Constants.INVALID_STATE)
-				return null;
+				return EMPTY;
 		}
 		
 		return getFinals(state);
