@@ -1,6 +1,5 @@
 package name.kazennikov.fsm;
 
-import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.map.hash.TIntIntHashMap;
 import gnu.trove.procedure.TIntIntProcedure;
 import gnu.trove.set.TIntSet;
@@ -23,13 +22,7 @@ import java.util.Set;
 public class FSM<E> {
 	
 	List<FSMState<E>> states = new ArrayList<FSMState<E>>();	
-	List<FSMTransition<E>> transitions = new ArrayList<FSMTransition<E>>();
-	// используются сейчас только в rev()
-	TIntArrayList tFrom = new TIntArrayList();
-	TIntArrayList tTo = new TIntArrayList();
-	TIntArrayList tLabel = new TIntArrayList();
-	
-	
+	List<FSMTransition<E>> transitions = new ArrayList<FSMTransition<E>>();	
 	
 	FSMState<E> start;
 	
@@ -48,11 +41,7 @@ public class FSM<E> {
 	
 	public void addTransition(FSMState<E> from, FSMState<E> to, int label) {
 		FSMTransition<E> t = from.addTransition(to, label);
-		transitions.add(t);
-		
-		tFrom.add(from.number);
-		tTo.add(to.number);
-		tLabel.add(label);
+		transitions.add(t);		
 	}
 	
 
@@ -230,6 +219,9 @@ public class FSM<E> {
 	public FSMState<E> getStart() {
 		return start;
 	}
+	public FSMState<E> getState(int index) {
+		return states.get(index);
+	}
 	
 	public int size() {
 		return states.size();
@@ -247,14 +239,14 @@ public class FSM<E> {
 				s.finals = s0.finals;
 				finals.add(s);
 			}
+			
 		}
 		
 		
-		for(int i = 0; i < tFrom.size(); i++) {
-			FSMState<E> from = fsm.states.get(tTo.get(i) + 1);
-			int label = tLabel.get(i);
-			FSMState<E> to = fsm.states.get(tFrom.get(i) + 1);
-			fsm.addTransition(from, to, label);
+		for(FSMTransition<E> t : transitions) {
+			FSMState<E> from = fsm.getState(t.dest.getNumber() + 1);
+			FSMState<E> to = fsm.getState(t.src.getNumber() + 1);
+			fsm.addTransition(from, to, t.label);
 		}
 		
 		for(FSMState<E> f : finals) {
@@ -689,6 +681,9 @@ public class FSM<E> {
 
 
 	public void mergeFinals(FSMState<E> dest, Collection<FSMState<E>> src) {
+		for(FSMState<E> s : src) {
+			mergeFinals(dest, s);
+		}
 		
 	}
 	
