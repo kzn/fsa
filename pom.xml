@@ -1,31 +1,33 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>name.kazennikov</groupId>
-  <artifactId>dafsa</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
-  <name>dafsa</name>
-  <description>Directed Acyclic FSA for morphological analysis</description>
-  <dependencies>
-            <dependency>
-  		<groupId>net.sf.trove4j</groupId>
-  		<artifactId>trove4j</artifactId>
-  		<version>3.0.3</version>
-	    </dependency>
-	    
-	    <dependency>
-  		<groupId>com.google.guava</groupId>
-  		<artifactId>guava</artifactId>
-  		<version>12.0</version>
-	    </dependency>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>name.kazennikov</groupId>
+	<artifactId>dafsa</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>dafsa</name>
+	<description>Directed Acyclic FSA for morphological analysis</description>
+	<dependencies>
+		<dependency>
+			<groupId>net.sf.trove4j</groupId>
+			<artifactId>trove4j</artifactId>
+			<version>3.0.3</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>12.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>name.kazennikov</groupId>
+			<artifactId>common</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
 
 
 
-	    <dependency>
-	    	<groupId>org.antlr</groupId>
-	    	<artifactId>stringtemplate</artifactId>
-	    	<version>3.2.1</version>
-	    </dependency>
-  </dependencies>
+	</dependencies>
 
 	<build>
 		<plugins>
@@ -55,16 +57,16 @@
 				</executions>
 			</plugin>
 
-	<plugin>
-		<groupId>com.fasterxml</groupId>
-		<artifactId>maven-stringtemplate-plugin</artifactId>
-		<version>1.0.0</version>
-		<configuration>
-			<inputDir>src/main/stringtemplate</inputDir>
-		</configuration>
-	</plugin>
-			
+			<plugin>
+				<groupId>com.fasterxml</groupId>
+				<artifactId>maven-stringtemplate-plugin</artifactId>
+				<version>1.0.0</version>
+				<configuration>
+					<inputDir>src/main/stringtemplate</inputDir>
+				</configuration>
+			</plugin>
+
 		</plugins>
 	</build>
-  
- </project>
+
+</project>
