@@ -1,14 +1,6 @@
 package name.kazennikov.fsm;
 
 public class FSMTransition<E> {
-	/**
-	 * Encoding:
-	 * <ul>
-	 * <li> label > 0 - AnnotationMatcher table lookup
-	 * <li> label = 0 - epsilon
-	 * <li> label = -1 - GROUP_START
-	 * <li> label < -1 - named group lookup
-	 */
 	FSMState<E> src;
 	int label;
 	FSMState<E> dest;

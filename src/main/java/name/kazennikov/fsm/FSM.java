@@ -70,7 +70,15 @@ public class FSM<E> {
 		toDot(pw);
 		pw.close();
 	}
-	
+
+	/**
+	 * Compute lambda closure from given set of states. Lambda-closure
+	 * is a set of states that is reachable from given set by epsilon transitions
+	 * 
+	 * @param states initial set of states
+	 * 
+	 * @return lambda-closed states
+	 */
 	public Set<FSMState<E>> lambdaClosure(Set<FSMState<E>> states) {
 		LinkedList<FSMState<E>> list = new LinkedList<FSMState<E>>(states);
 		Set<FSMState<E>> closure = new HashSet<FSMState<E>>(states);
@@ -90,6 +98,13 @@ public class FSM<E> {
 		return closure;
 	}
 	
+	/**
+	 * Get transition labels from states
+	 * 
+	 * @param states set of states
+	 * 
+	 * @return labels
+	 */
 	private TIntSet labels(Set<FSMState<E>> states) {
 		TIntHashSet set = new TIntHashSet();
 		
@@ -103,6 +118,14 @@ public class FSM<E> {
 		return set;
 	}
 	
+	/**
+	 * Compute set of next states from given set by specific label 
+	 * 
+	 * @param states set states 
+	 * @param label label 
+	 * 
+	 * @return
+	 */
 	private Set<FSMState<E>> next(Set<FSMState<E>> states, int label) {
 		Set<FSMState<E>> next = new HashSet<FSMState<E>>();
 		
@@ -116,7 +139,10 @@ public class FSM<E> {
 		return next;
 	}
 	
-	
+	/**
+	 * Determinize this FSM
+	 * @param fsm target FSM
+	 */
 	public void determinize(FSM<E> fsm) {
 		
 		
@@ -143,7 +169,7 @@ public class FSM<E> {
 				Set<FSMState<E>> next = next(currentDState, label);
 				next = lambdaClosure(next);
 
-				// add new state to epsilon-free automaton
+				// add new state to deterministic automaton
 				if(!dStates.contains(next)) {
 					dStates.add(next);
 					unmarkedDStates.add(next);
@@ -163,7 +189,7 @@ public class FSM<E> {
 	/**
 	 * Converts this epsilon-NFA to epsilon-free NFA. Non-destructive procedure
 	 * 
-	 * @return fresh epsilon free NFA
+	 * @param fsm target FSM
 	 */
 	public void epsilonFreeFSM(FSM<E> fsm) {
 
@@ -191,7 +217,6 @@ public class FSM<E> {
 					// skip epsilon transitions
 					if(t.isEpsilon())
 						continue;
-
 
 					FSMState<E> target = t.dest;
 					Set<FSMState<E>> newDState = new HashSet<FSMState<E>>();
@@ -227,6 +252,11 @@ public class FSM<E> {
 		return states.size();
 	}
 	
+	/**
+	 * Reverse this FSM
+	 * 
+	 * @param fsm target fsm
+	 */
 	public void rev(FSM<E> fsm) {
 		
 		List<FSMState<E>> finals = new ArrayList<FSMState<E>>();
@@ -255,6 +285,10 @@ public class FSM<E> {
 		
 	}
 	
+	/**
+	 * Compute list of final states
+	 * @return
+	 */
 	public List<FSMState<E>> finals() {
 		List<FSMState<E>> finals = new ArrayList<FSMState<E>>();
 		
@@ -268,7 +302,9 @@ public class FSM<E> {
 	
 	
 	
-	
+	/**
+	 * Reverse transitions
+	 */
 	private void trReverse() {
 		for(FSMState<E> s : states) {
 			s.transitions.clear();
@@ -287,6 +323,9 @@ public class FSM<E> {
 	
 	}
 	
+	/**
+	 * Sort transitions
+	 */
 	private void trSort() {
 		Collections.sort(transitions, new Comparator<FSMTransition<E>>() {
 
@@ -505,6 +544,9 @@ public class FSM<E> {
 	}
 
 	
+	/**
+	 * Automata minimization using Hopcroft's algorithm
+	 */
 	protected AutomatonMinimizationData hopcroftMinimize() {
 		// reverse transitions
 		trReverse();
@@ -634,6 +676,11 @@ public class FSM<E> {
 		return data;
 	}
 	
+	/**
+	 * Minimize fsm
+	 * 
+	 * @param fsm target fsm
+	 */
 	public void minimize(FSM<E> fsm) {
 		AutomatonMinimizationData data = hopcroftMinimize();
 		
@@ -644,6 +691,7 @@ public class FSM<E> {
 		data.unmapLabels();
 		trReverse();
 		trSort();
+		
 		// add states
 		for(int i = 0; i < data.classesStored; i++) {
 			fsm.addState();
@@ -679,7 +727,12 @@ public class FSM<E> {
 				
 	}
 
-
+	/**
+	 * Merge finals from source state set to the destination set
+	 * 
+	 * @param dest destination state
+	 * @param src source state set
+	 */
 	public void mergeFinals(FSMState<E> dest, Collection<FSMState<E>> src) {
 		for(FSMState<E> s : src) {
 			mergeFinals(dest, s);
@@ -687,6 +740,12 @@ public class FSM<E> {
 		
 	}
 	
+	/**
+	 * Merge finals from source state to destination state
+	 * 
+	 * @param dest destination state
+	 * @param src source state
+	 */
 	public void mergeFinals(FSMState<E> dest, FSMState<E> src) {
 		
 	}
@@ -694,8 +753,4 @@ public class FSM<E> {
 	public boolean isFinal(FSMState<E> s) {
 		return s.finals != null;
 	}
-
-
-
-
 }
