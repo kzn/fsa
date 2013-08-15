@@ -47,7 +47,7 @@ public class IntTrieBuilderNG extends AbstractIntTrieBuilder {
 
 	@Override
 	public void newFinal(int state) {
-		finals.add(new TIntHashSet());
+		finals.add(new TIntHashSet(3));
 		
 	}
 	
