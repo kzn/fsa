@@ -1,6 +1,5 @@
 package name.kazennikov.trie;
 
-import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.list.array.TLongArrayList;
 
 import java.util.ArrayList;
@@ -10,11 +9,24 @@ import java.util.PriorityQueue;
 
 import name.kazennikov.fsm.Constants;
 
+/**
+ * Abstract DAFSA builder. It almost complete implementation, where only
+ * finality state data is missing. Main difference from previous implementations
+ * is that final value is stored in the DAFSA instead of the state.
+ * 
+ * So one doesn't need to subclass the node state, instead one can implement
+ * it's own handling strategy for final values using abstract functions.
+ * 
+ * Also, the finals are indexed by state number
+ * 
+ * @author Anton Kazennikov
+ *
+ */
 public abstract class AbstractIntTrieBuilder extends IntDaciukAlgoIndexed {
 
 	/**
-	 * Basic FSA node. Doesn't hold the final value.
-	 * The value is stored in the fsa itself
+	 * Basic FSA node. Doesn't store the final value.
+	 * The value is stored in the DAFSA itself
 	 * @author Anton Kazennikov
 	 *
 	 */
@@ -242,7 +254,7 @@ public abstract class AbstractIntTrieBuilder extends IntDaciukAlgoIndexed {
 		}
 	}
 	
-	GenericRegister<Node> r = new GenericRegister<Node>();
+	GenericRegister<Node> register = new GenericRegister<Node>();
 	
 	@Override
 	public void regAdd(int state) {
@@ -250,13 +262,13 @@ public abstract class AbstractIntTrieBuilder extends IntDaciukAlgoIndexed {
 			return;
 		nodes.get(state).registered = true;
 		
-		r.add(nodes.get(state));
+		register.add(nodes.get(state));
 		
 	}
 
 	@Override
 	public int regGet(int state) {
-		Node n = r.get(nodes.get(state));
+		Node n = register.get(nodes.get(state));
 		
 		if(n == null)
 			return Constants.INVALID_STATE;
@@ -271,12 +283,11 @@ public abstract class AbstractIntTrieBuilder extends IntDaciukAlgoIndexed {
 		
 		nodes.get(state).registered = false;
 		
-		r.remove(nodes.get(state));
+		register.remove(nodes.get(state));
 
 	}
 	
 	List<Node> nodes = new ArrayList<Node>();
-	//Stack<BaseNode> free = new Stack<BaseNode>();
 	PriorityQueue<Node> free = new PriorityQueue<>(10, new Comparator<Node>() {
 
 		@Override
@@ -340,32 +351,49 @@ public abstract class AbstractIntTrieBuilder extends IntDaciukAlgoIndexed {
 		n.reset();
 		free.add(n);
 	}
-
-	
-
-	
-	public static TIntArrayList str(CharSequence s) {
-		TIntArrayList l = new TIntArrayList();
-		
-		for(int i = 0; i < s.length(); i++) {
-			l.add(s.charAt(i));
-		}
-		
-		return l;
-	}
 	
 	public int size() {
 		return nodes.size() - free.size();
 	}
 	
+	/**
+	 * Init finality values for this FSA
+	 */
 	public abstract void initFinals();
+
+	
+	/**
+	 * Compute hash code for the final value of the state 
+	 * @param state state
+	 * @return hash code
+	 */
 	public abstract int finalHash(int state);
+	
+	/**
+	 * Check if final values of two states are equal
+	 * @param state1 first state
+	 * @param state2 second state
+	 * 
+	 * @return true, if they are equal
+	 */
 	public abstract boolean finalEquals(int state1, int state2);
+	
+	/**
+	 * Reset the final value of the given state
+	 * @param state
+	 */
 	public abstract void finalReset(int state);
+	
+	/**
+	 * Copy final value from source state to destination state
+	 * @param destState destination state
+	 * @param srcState source state
+	 */
 	public abstract void finalAssign(int destState, int srcState);
+	
+	/**
+	 * Initialize final value for given state
+	 * @param state
+	 */
 	public abstract void newFinal(int state);
-
-
-
-
 }
