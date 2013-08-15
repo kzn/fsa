@@ -116,10 +116,9 @@ public abstract class IntDaciukAlgoObject<E> {
 	 * @param seq sequence to add
 	 * @param fin final state
 	 */
-	protected List<E> addSuffix(E startState, TIntList seq, int start, int end) {
+	protected List<E> addSuffix(List<E> nodes, E startState, TIntList seq, int start, int end) {
 		E current = startState;
 
-		List<E> nodes = new ArrayList<E>();
 		
 		if(end > start) {
 			regRemove(startState); // as we will change it by adding new states in the sequence
@@ -128,7 +127,8 @@ public abstract class IntDaciukAlgoObject<E> {
 		for(int i = start; i < end; i++) {
 			int in = seq.get(i);
 			E node = addState();
-			nodes.add(node);
+			if(nodes != null)
+				nodes.add(node);
 			setNext(current, in, node);
 			current = node;
 		}
@@ -185,25 +185,25 @@ public abstract class IntDaciukAlgoObject<E> {
 		 * 5. minimize(replaceOrRegister from the last state toward the first)
 		 */
 
-		List<E> prefix = commonPrefix(input);
+		List<E> nodeList = commonPrefix(input);
 
-		int confIdx = findConfluence(prefix);
+		int confIdx = findConfluence(nodeList);
 		/* index of stop for replaceOrRegister a pointer to the state before modifications
 		 * caused by this word addition. 
 		 * 
 		 * The logic is: if the state isn't changed by replaceOrRegister we can safely bail out
 		 * as all states before this won't change either
 		*/
-		int stopIdx = confIdx == 0? prefix.size() : confIdx; 
+		int stopIdx = confIdx == 0? nodeList.size() : confIdx; 
 
 		if(confIdx > 0) {	
 			int idx = confIdx;
-			regRemove(prefix.get(idx - 1)); // as we will clone confluence state and change previous to link the cloned
+			regRemove(nodeList.get(idx - 1)); // as we will clone confluence state and change previous to link the cloned
 
-			while(idx < prefix.size()) {
-				E prev = prefix.get(idx - 1);
-				E cloned = cloneState(prefix.get(idx));
-				prefix.set(idx, cloned);
+			while(idx < nodeList.size()) {
+				E prev = nodeList.get(idx - 1);
+				E cloned = cloneState(nodeList.get(idx));
+				nodeList.set(idx, cloned);
 				setNext(prev, input.get(confIdx - 1), cloned);
 				idx++;
 				confIdx++;
@@ -212,9 +212,9 @@ public abstract class IntDaciukAlgoObject<E> {
 
 
 
-		List<E> nodeList = new ArrayList<E>(prefix);
+		//List<E> nodeList = new ArrayList<E>(prefix);
 
-		nodeList.addAll(addSuffix(prefix.get(prefix.size() - 1), input, prefix.size() - 1, input.size()));
+		addSuffix(nodeList, nodeList.get(nodeList.size() - 1), input, nodeList.size() - 1, input.size());
 
 		replaceOrRegister(input, nodeList, stopIdx);
 	}
@@ -264,7 +264,7 @@ public abstract class IntDaciukAlgoObject<E> {
 			current = n;
 		}
 
-		addSuffix(current, seq, idx, seq.size());
+		addSuffix(null, current, seq, idx, seq.size());
 	}
 
 

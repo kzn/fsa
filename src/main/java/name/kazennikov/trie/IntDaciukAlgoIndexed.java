@@ -114,10 +114,8 @@ public abstract class IntDaciukAlgoIndexed {
 	 * @param seq sequence to add
 	 * @param fin final state
 	 */
-	protected TIntList addSuffix(int n, TIntList seq, int start, int end) {
+	protected TIntList addSuffix(TIntList nodes, int n, TIntList seq, int start, int end) {
 		int current = n;
-
-		TIntList nodes = new TIntArrayList();
 		
 		if(end > start) {
 			regRemove(n); // as we will change it by adding new states in the sequence
@@ -126,7 +124,8 @@ public abstract class IntDaciukAlgoIndexed {
 		for(int i = start; i < end; i++) {
 			int in = seq.get(i);
 			int node = addState();
-			nodes.add(node);
+			if(nodes != null)
+				nodes.add(node);
 			setNext(current, in, node);
 			current = node;
 		}
@@ -183,25 +182,25 @@ public abstract class IntDaciukAlgoIndexed {
 		 * 5. minimize(replaceOrRegister from the last state toward the first)
 		 */
 
-		TIntList prefix = commonPrefix(input);
+		TIntList nodeList = commonPrefix(input);
 
-		int confIdx = findConfluence(prefix);
+		int confIdx = findConfluence(nodeList);
 		/* index of stop for replaceOrRegister a pointer to the state before modifications
 		 * caused by this word addition. 
 		 * 
 		 * The logic is: if the state isn't changed by replaceOrRegister we can safely bail out
 		 * as all states before this won't change either
 		*/
-		int stopIdx = confIdx == 0? prefix.size() : confIdx; 
+		int stopIdx = confIdx == 0? nodeList.size() : confIdx; 
 
 		if(confIdx > 0) {	
 			int idx = confIdx;
-			regRemove(prefix.get(idx - 1)); // as we will clone confluence state and change previous to link the cloned
+			regRemove(nodeList.get(idx - 1)); // as we will clone confluence state and change previous to link the cloned
 
-			while(idx < prefix.size()) {
-				int prev = prefix.get(idx - 1);
-				int cloned = cloneState(prefix.get(idx));
-				prefix.set(idx, cloned);
+			while(idx < nodeList.size()) {
+				int prev = nodeList.get(idx - 1);
+				int cloned = cloneState(nodeList.get(idx));
+				nodeList.set(idx, cloned);
 				setNext(prev, input.get(confIdx - 1), cloned);
 				idx++;
 				confIdx++;
@@ -210,9 +209,8 @@ public abstract class IntDaciukAlgoIndexed {
 
 
 
-		TIntList nodeList = new TIntArrayList(prefix);
 
-		nodeList.addAll(addSuffix(prefix.get(prefix.size() - 1), input, prefix.size() - 1, input.size()));
+		addSuffix(nodeList, nodeList.get(nodeList.size() - 1), input, nodeList.size() - 1, input.size());
 
 		replaceOrRegister(input, nodeList, stopIdx);
 
@@ -264,8 +262,8 @@ public abstract class IntDaciukAlgoIndexed {
 			idx++;
 			current = n;
 		}
-
-		addSuffix(current, seq, idx, seq.size());
+	
+		addSuffix(null, current, seq, idx, seq.size());
 	}
 
 	
