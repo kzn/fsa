@@ -3,10 +3,9 @@ package name.kazennikov.trie;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.TLongList;
 import gnu.trove.list.array.TIntArrayList;
+import name.kazennikov.fsm.Constants;
 
 public abstract class LongDaciukAlgo {
-	public static final int INVALID_STATE = -1;
-	
 	/**
 	 * Find matching outbound transition for given state
 	 * @param state source state
@@ -109,10 +108,8 @@ public abstract class LongDaciukAlgo {
 	 * @param seq sequence to add
 	 * @param fin final state
 	 */
-	protected TIntList addSuffix(int n, TLongList seq, int start, int end) {
+	protected TIntList addSuffix(TIntList nodes, int n, TLongList seq, int start, int end) {
 		int current = n;
-
-		TIntList nodes = new TIntArrayList();
 		
 		if(end > start) {
 			regRemove(n); // as we will change it by adding new states in the sequence
@@ -121,7 +118,10 @@ public abstract class LongDaciukAlgo {
 		for(int i = start; i < end; i++) {
 			long in = seq.get(i);
 			int node = addState();
-			nodes.add(node);
+			
+			if(nodes != null)
+				nodes.add(node);
+			
 			setNext(current, in, node);
 			current = node;
 		}
@@ -148,7 +148,7 @@ public abstract class LongDaciukAlgo {
 			long in = seq.get(i);
 			int next = getNext(current, in);
 
-			if(next == INVALID_STATE)
+			if(next == Constants.INVALID_STATE)
 				break;
 
 			current = next;
@@ -164,7 +164,7 @@ public abstract class LongDaciukAlgo {
 				return i;
 		}
 
-		return 0;
+		return -1;
 	}
 
 
@@ -178,41 +178,33 @@ public abstract class LongDaciukAlgo {
 		 * 5. minimize(replaceOrRegister from the last state toward the first)
 		 */
 
-		TIntList prefix = commonPrefix(input);
+		TIntList nodeList = commonPrefix(input);
 
-		int confIdx = findConfluence(prefix);
+		int confIdx = findConfluence(nodeList);
 		/* index of stop for replaceOrRegister a pointer to the state before modifications
 		 * caused by this word addition. 
 		 * 
 		 * The logic is: if the state isn't changed by replaceOrRegister we can safely bail out
 		 * as all states before this won't change either
 		*/
-		int stopIdx = confIdx == 0? prefix.size() : confIdx; 
+		int stopIdx = confIdx == -1? nodeList.size() : confIdx; 
 
-		if(confIdx > 0) {	
+		if(confIdx > -1) {	
 			int idx = confIdx;
-			regRemove(prefix.get(idx - 1)); // as we will clone confluence state and change previous to link the cloned
+			regRemove(nodeList.get(idx - 1)); // as we will clone confluence state and change previous to link the cloned
 
-			while(idx < prefix.size()) {
-				int prev = prefix.get(idx - 1);
-				int cloned = cloneState(prefix.get(idx));
-				prefix.set(idx, cloned);
+			while(idx < nodeList.size()) {
+				int prev = nodeList.get(idx - 1);
+				int cloned = cloneState(nodeList.get(idx));
+				nodeList.set(idx, cloned);
 				setNext(prev, input.get(confIdx - 1), cloned);
 				idx++;
 				confIdx++;
 			}
 		}
 
-
-
-		TIntList nodeList = new TIntArrayList(prefix);
-
-		nodeList.addAll(addSuffix(prefix.get(prefix.size() - 1), input, prefix.size() - 1, input.size()));
-
+		addSuffix(nodeList, nodeList.get(nodeList.size() - 1), input, nodeList.size() - 1, input.size());
 		replaceOrRegister(input, nodeList, stopIdx);
-
-
-
 	}
 
 
@@ -220,28 +212,28 @@ public abstract class LongDaciukAlgo {
 		if(nodeList.size() < 2)
 			return;
 
-		int idx = nodeList.size() - 1;
-		int inIdx = input.size() - 1;
+		int nodeIdx = nodeList.size() - 1;
+		int inputIdx = input.size() - 1;
 
-		while(idx > 0) {
-			int n = nodeList.get(idx);
+		while(nodeIdx > 0) {
+			int n = nodeList.get(nodeIdx);
 			int regNode = regGet(n);
 
 			// stop
 			if(regNode == n) {
-				if(idx < stop)
+				if(nodeIdx < stop)
 					return;
-			} else if(regNode == INVALID_STATE) {
+			} else if(regNode == Constants.INVALID_STATE) {
 				regAdd(n);
 			} else {
-				long in = input.get(inIdx);
-				regRemove(nodeList.get(idx - 1));
-				setNext(nodeList.get(idx - 1), in, regNode);
-				nodeList.set(idx, regNode);
+				long in = input.get(inputIdx);
+				regRemove(nodeList.get(nodeIdx - 1));
+				setNext(nodeList.get(nodeIdx - 1), in, regNode);
+				nodeList.set(nodeIdx, regNode);
 				removeState(n);
 			}
-			inIdx--;
-			idx--;
+			inputIdx--;
+			nodeIdx--;
 		}
 
 	}
@@ -253,14 +245,14 @@ public abstract class LongDaciukAlgo {
 
 		while(idx < seq.size()) {
 			int n = getNext(current, seq.get(idx));
-			if(n == INVALID_STATE)
+			if(n == Constants.INVALID_STATE)
 				break;
 
 			idx++;
 			current = n;
 		}
 
-		addSuffix(current, seq, idx, seq.size());
+		addSuffix(null, current, seq, idx, seq.size());
 	}
 
 	
