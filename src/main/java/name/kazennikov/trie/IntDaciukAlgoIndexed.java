@@ -161,7 +161,7 @@ public abstract class IntDaciukAlgoIndexed {
 	 */
 	TIntList commonPrefix(TIntList seq) {
 		int current = startState;
-		TIntArrayList prefix = new TIntArrayList();
+		TIntArrayList prefix = new TIntArrayList(seq.size() + 1);
 		prefix.add(current);
 
 		for(int i = 0; i != seq.size(); i++) {
