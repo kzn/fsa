@@ -2,10 +2,10 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>name.kazennikov</groupId>
-	<artifactId>dafsa</artifactId>
+	<artifactId>fsa</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>dafsa</name>
-	<description>Directed Acyclic FSA for morphological analysis</description>
+	<name>fsa</name>
+	<description>FSM implementation for NLP</description>
 	<dependencies>
 		<dependency>
 			<groupId>net.sf.trove4j</groupId>
@@ -19,11 +19,6 @@
 			<version>12.0</version>
 		</dependency>
 
-		<dependency>
-			<groupId>name.kazennikov</groupId>
-			<artifactId>common</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-		</dependency>
 
 
 
