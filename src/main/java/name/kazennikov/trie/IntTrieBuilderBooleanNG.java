@@ -18,7 +18,7 @@ public class IntTrieBuilderBooleanNG extends AbstractIntTrieBuilder {
 	@Override
 	public void finalReset(int state) {
 		finals.set(state, (byte)0);
-		nodes.get(state).validHashCode = false;
+		states.get(state).validHashCode = false;
 		
 	}
 
@@ -46,7 +46,7 @@ public class IntTrieBuilderBooleanNG extends AbstractIntTrieBuilder {
 	@Override
 	public boolean setFinal(int state) {
 		finals.set(state, finalValue? (byte)1 : (byte)0);
-		nodes.get(state).validHashCode = false;
+		states.get(state).validHashCode = false;
 		return true;
 	}
 

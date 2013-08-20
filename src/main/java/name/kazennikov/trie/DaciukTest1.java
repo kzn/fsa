@@ -430,9 +430,13 @@ public class DaciukTest1 extends IntDaciukAlgoObject<DaciukTest1.Node> {
 		
 		pw.println("digraph finite_state_machine {");
 		pw.println("rankdir=LR;");
-		pw.println("node [shape=circle]");
+		pw.println("node [shape=circle,style=filled, fillcolor=white]");
 		
 		for(Node n : nodes) {
+			if(n == startState) {
+				pw.printf("%d [fillColor=\"gray\"];%n", n.getNumber());
+			}
+			
 			for(int i = 0; i < n.outbound(); i++) {
 				pw.printf("%d -> %d [label=\"%s\"];%n", n.number, n.dest(n.next.get(i)), "" + ((char) n.label(n.next.get(i))));
 			}

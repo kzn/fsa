@@ -6,11 +6,11 @@ import java.util.ArrayList;
 
 import com.google.common.base.Objects;
 
-public class IntTrieBuilderNG extends AbstractIntTrieBuilder {
+public class IntTrieBuilderIntNG extends AbstractIntTrieBuilder {
 	
 	ArrayList<TIntHashSet> finals;
 	
-	public IntTrieBuilderNG() {
+	public IntTrieBuilderIntNG() {
 		super();
 	}
 
@@ -27,7 +27,7 @@ public class IntTrieBuilderNG extends AbstractIntTrieBuilder {
 	@Override
 	public void finalReset(int state) {
 		finals.get(state).clear();
-		nodes.get(state).validHashCode = false;
+		states.get(state).validHashCode = false;
 		
 	}
 
@@ -60,13 +60,17 @@ public class IntTrieBuilderNG extends AbstractIntTrieBuilder {
 	@Override
 	public boolean setFinal(int state) {
 		boolean b = finals.get(state).add(finalValue);
-		nodes.get(state).validHashCode = false;
+		states.get(state).validHashCode = false;
 		return b;
 	}
 
 	@Override
 	public boolean isFinal(int state) {
 		return finals.get(state).contains(finalValue);
+	}
+	
+	public TIntHashSet getFinals(int state) {
+		return finals.get(state);
 	}
 
 }

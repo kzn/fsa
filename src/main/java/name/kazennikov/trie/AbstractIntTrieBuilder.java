@@ -2,6 +2,8 @@ package name.kazennikov.trie;
 
 import gnu.trove.list.array.TLongArrayList;
 
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -23,14 +25,47 @@ import name.kazennikov.fsm.Constants;
  *
  */
 public abstract class AbstractIntTrieBuilder extends IntDaciukAlgoIndexed {
+	
+	/**
+	 * Decode label from the transition table value
+	 * @param val transition table value
+	 * @return
+	 */
+	public static int decodeLabel(long val) {
+		return (int)(val >>> 32);
+	}
+	
+	/**
+	 * Decode destination from the transition table value
+	 * @param val transition table value
+	 * @return
+	 */
+	public static int decodeDest(long val) {
+		return (int) (val & 0xFFFFFFFFL);
+	}
+	
+	/**
+	 * Encode transition to table value
+	 * @param input input symbol
+	 * @param next next state number
+	 * @return
+	 */
+	public static long encodeTransition(int input, int next) {
+		long k = input;
+		k <<= 32;
+		k += next;
+		return k;
+	}
+
+	
 
 	/**
-	 * Basic FSA node. Doesn't store the final value.
+	 * Basic FSA state. Doesn't store the final value.
 	 * The value is stored in the DAFSA itself
 	 * @author Anton Kazennikov
 	 *
 	 */
-	public class Node {
+	public class State {
 		TLongArrayList next = new TLongArrayList();
 
 		int inbound;
@@ -39,7 +74,7 @@ public abstract class AbstractIntTrieBuilder extends IntDaciukAlgoIndexed {
 		boolean registered;
 		boolean validHashCode = true;
 		
-		public Node() {
+		public State() {
 			inbound = 0;
 			hashCode = 1;
 		}
@@ -52,24 +87,9 @@ public abstract class AbstractIntTrieBuilder extends IntDaciukAlgoIndexed {
 			return number;
 		}
 		
-		public long encode(int input, int next) {
-			long k = input;
-			k <<= 32;
-			k += next;
-			return k;
-		}
-		
-		public int label(long val) {
-			return (int)(val >>> 32);
-		}
-		
-		public int dest(long val) {
-			return (int) (val & 0xFFFFFFFFL);
-		}
-		
 		int findIndex(int input) {
 			for(int i = 0; i != next.size(); i++) {
-				if(label(next.get(i)) == input)
+				if(decodeLabel(next.get(i)) == input)
 					return i;
 			}
 
@@ -81,7 +101,7 @@ public abstract class AbstractIntTrieBuilder extends IntDaciukAlgoIndexed {
 			if(index == -1)
 				return Constants.INVALID_STATE;
 			
-			return dest(next.get(index));
+			return decodeDest(next.get(index));
 		}
 		
 		
@@ -90,20 +110,18 @@ public abstract class AbstractIntTrieBuilder extends IntDaciukAlgoIndexed {
 			int index = findIndex(input);
 			
 			if(index != -1) {
-				Node n = nodes.get(dest(this.next.get(index)));
+				State n = states.get(decodeDest(this.next.get(index)));
 				n.removeInbound(input, this);
 			}
 			
-			
-			
 			if(next != Constants.INVALID_STATE) {
 				if(index == -1) {
-					this.next.add(encode(input, next));
+					this.next.add(encodeTransition(input, next));
 				} else {
-					this.next.set(index, encode(input, next));
+					this.next.set(index, encodeTransition(input, next));
 				}
-				Node n = nodes.get(next);
-				n.addInbound(input, this);
+				State s = states.get(next);
+				s.addInbound(input, this);
 			} else if(index != -1) {
 				this.next.removeAt(index);
 			}
@@ -121,12 +139,12 @@ public abstract class AbstractIntTrieBuilder extends IntDaciukAlgoIndexed {
 		}
 
 
-		public void removeInbound(int input, Node node) {
+		public void removeInbound(int input, State node) {
 			inbound--;
 			
 		}
 
-		public void addInbound(int input, Node node) {
+		public void addInbound(int input, State node) {
 			inbound++;
 		}
 
@@ -135,9 +153,8 @@ public abstract class AbstractIntTrieBuilder extends IntDaciukAlgoIndexed {
 			int result = finalHash(number);
 			
 			for(int i = 0; i != next.size(); i++) {
-				result += label(next.get(i));
-				result += dest(next.get(i));
-
+				result += decodeLabel(next.get(i));
+				result += decodeDest(next.get(i));
 			}
 
 			return result;
@@ -165,11 +182,11 @@ public abstract class AbstractIntTrieBuilder extends IntDaciukAlgoIndexed {
 				return true;
 			if(obj == null)
 				return false;
-			if(!(obj instanceof Node))
+			if(!(obj instanceof State))
 				return false;
 			
 
-			Node other = (Node) obj;
+			State other = (State) obj;
 			
 			if(!finalEquals(number, other.number))
 				return false;
@@ -178,11 +195,11 @@ public abstract class AbstractIntTrieBuilder extends IntDaciukAlgoIndexed {
 				return false;
 
 			for(int i = 0; i != outbound(); i++) {
-				int otherIndex = other.findIndex(label(next.get(i)));
+				int otherIndex = other.findIndex(decodeLabel(next.get(i)));
 				if(otherIndex == -1)
 					return false;
 
-				if(dest(next.get(i)) != dest(other.next.get(otherIndex)))
+				if(decodeDest(next.get(i)) != decodeDest(other.next.get(otherIndex)))
 					return false;
 			}
 
@@ -192,57 +209,21 @@ public abstract class AbstractIntTrieBuilder extends IntDaciukAlgoIndexed {
 
 		public void reset() {
 			finalReset(number);
+			
 			for(int i = 0; i != outbound(); i++) {
-				int input = label(next.get(i));
-				Node next = nodes.get(dest(this.next.get(i)));
-				
+				int input = decodeLabel(next.get(i));
+				State next = states.get(decodeDest(this.next.get(i)));
 				next.removeInbound(input, this);
 			}
 			
 			next.clear();
 		}
 
-/*		public TIntObjectIterator<BaseNode> next() {
-			return new TIntObjectIterator<BaseNode>() {
-				
-				int pos = -1;
-				
-				@Override
-				public void remove() {
-				}
-				
-				@Override
-				public boolean hasNext() {
-					return pos < next.size();
-				}
-				
-				@Override
-				public void advance() {
-					pos++;
-				}
-				
-				@Override
-				public BaseNode value() {
-					return nodes.get(dest(next.get(pos)));
-				}
-				
-				@Override
-				public BaseNode setValue(BaseNode val) {
-					return null;
-				}
-				
-				@Override
-				public int key() {
-					return label(next.get(pos));
-				}
-			};
-		}*/
-		
-
-		public Node assign(final Node node) {
+		public State assign(final State node) {
 			finalAssign(node.getNumber(), number);
+
 			for(int i = 0; i != next.size(); i++) {
-				node.setNext(label(next.get(i)), dest(next.get(i)));
+				node.setNext(decodeLabel(next.get(i)), decodeDest(next.get(i)));
 			}
 
 			return node;
@@ -254,45 +235,43 @@ public abstract class AbstractIntTrieBuilder extends IntDaciukAlgoIndexed {
 		}
 	}
 	
-	GenericRegister<Node> register = new GenericRegister<Node>();
+	GenericRegister<State> register = new GenericRegister<State>();
 	
 	@Override
 	public void regAdd(int state) {
-		if(nodes.get(state).registered)
+		if(states.get(state).registered)
 			return;
-		nodes.get(state).registered = true;
 		
-		register.add(nodes.get(state));
+		states.get(state).registered = true;
+		register.add(states.get(state));
 		
 	}
 
 	@Override
 	public int regGet(int state) {
-		Node n = register.get(nodes.get(state));
+		State s = register.get(states.get(state));
 		
-		if(n == null)
+		if(s == null)
 			return Constants.INVALID_STATE;
 
-		return n.getNumber();
+		return s.getNumber();
 	}
 
 	@Override
 	public void regRemove(int state) {
-		if(!nodes.get(state).registered)
+		if(!states.get(state).registered)
 			return;
 		
-		nodes.get(state).registered = false;
-		
-		register.remove(nodes.get(state));
-
+		states.get(state).registered = false;
+		register.remove(states.get(state));
 	}
 	
-	List<Node> nodes = new ArrayList<Node>();
-	PriorityQueue<Node> free = new PriorityQueue<>(10, new Comparator<Node>() {
+	List<State> states = new ArrayList<State>();
+	PriorityQueue<State> free = new PriorityQueue<>(10, new Comparator<State>() {
 
 		@Override
-		public int compare(Node o1, Node o2) {
-			return o1.number - o2.number;
+		public int compare(State s1, State s2) {
+			return s1.number - s2.number;
 		}
 	});
 	int startState;
@@ -304,25 +283,25 @@ public abstract class AbstractIntTrieBuilder extends IntDaciukAlgoIndexed {
 
 	@Override
 	public int getNext(int state, int input) {
-		Node n = nodes.get(state);
-		int next = n.getNext(input);
+		State s = states.get(state);
+		int next = s.getNext(input);
 		
 		return next;
 	}
 
 	@Override
 	public boolean isConfluence(int state) {
-		return nodes.get(state).inbound() > 1;
+		return states.get(state).inbound() > 1;
 	}
 
 	@Override
-	public int cloneState(int state) {
-		Node src = nodes.get(state);
-		int node = addState();
-		src.assign(nodes.get(node));
-		nodes.get(node).hashCode = src.hashCode;
-		nodes.get(node).validHashCode = src.validHashCode;
-		return node;
+	public int cloneState(int srcState) {
+		State src = states.get(srcState);
+		int clonedState = addState();
+		src.assign(states.get(clonedState));
+		states.get(clonedState).hashCode = src.hashCode;
+		states.get(clonedState).validHashCode = src.validHashCode;
+		return clonedState;
 	}
 	
 	@Override
@@ -330,47 +309,67 @@ public abstract class AbstractIntTrieBuilder extends IntDaciukAlgoIndexed {
 		if(!free.isEmpty())
 			return free.poll().getNumber();
 		
-		Node n = new Node();
-		n.number = nodes.size();
-		nodes.add(n);
-		newFinal(n.number);
+		State s = new State();
+		s.number = states.size();
+		states.add(s);
+		newFinal(s.number);
 		
-		return n.getNumber();
+		return s.getNumber();
 	}
 
 	@Override
 	public boolean setNext(int src, int label, int dest) {
-		Node n = nodes.get(src);
-		n.setNext(label, dest);
+		State s = states.get(src);
+		s.setNext(label, dest);
 		return false;
 	}
 
 	@Override
 	public void removeState(int state) {
-		Node n = nodes.get(state);
-		n.reset();
-		free.add(n);
+		State s = states.get(state);
+		s.reset();
+		free.add(s);
 	}
 	
 	public int size() {
-		return nodes.size() - free.size();
+		return states.size() - free.size();
+	}
+	
+	public int getTransitionCount(int state) {
+		return states.get(state).next.size();
+	}
+	
+	public int getTransitionInput(int state, int transitionIndex) {
+		return decodeLabel(states.get(state).next.get(transitionIndex));
+	}
+	
+	public int getTransitionNext(int state, int transitionIndex) {
+		return decodeDest(states.get(state).next.get(transitionIndex));
+	}
+
+	
+	public int getStartState() {
+		return startState;
 	}
 	
 	/**
-	 * Init finality values for this FSA
+	 * Initialize finality values for this FSA
 	 */
 	public abstract void initFinals();
 
 	
 	/**
 	 * Compute hash code for the final value of the state 
+	 * 
 	 * @param state state
+	 * 
 	 * @return hash code
 	 */
 	public abstract int finalHash(int state);
 	
 	/**
 	 * Check if final values of two states are equal
+	 * 
 	 * @param state1 first state
 	 * @param state2 second state
 	 * 
@@ -380,12 +379,14 @@ public abstract class AbstractIntTrieBuilder extends IntDaciukAlgoIndexed {
 	
 	/**
 	 * Reset the final value of the given state
+	 * 
 	 * @param state
 	 */
 	public abstract void finalReset(int state);
 	
 	/**
 	 * Copy final value from source state to destination state
+	 * 
 	 * @param destState destination state
 	 * @param srcState source state
 	 */
@@ -393,7 +394,36 @@ public abstract class AbstractIntTrieBuilder extends IntDaciukAlgoIndexed {
 	
 	/**
 	 * Initialize final value for given state
+	 * 
 	 * @param state
 	 */
 	public abstract void newFinal(int state);
+	
+	/**
+	 * Output this DAFSA to dot format
+	 * @param pw print writer
+	 * @throws IOException
+	 */
+	public void toDot(PrintWriter pw) throws IOException {
+		pw.println("digraph fsm {");
+		pw.println("rankdir=LR;");
+		pw.println("node [shape=circle,style=filled, fillcolor=white]");
+		
+
+		for(State n : states) {
+			if(n.getNumber() == startState) {
+				pw.printf("%d [fillColor=\"gray\"];%n", n.getNumber());
+			}
+			
+			for(int i = 0; i < n.outbound(); i++) {
+				pw.printf("%d -> %d [label=\"%s\"];%n", n.number, decodeDest(n.next.get(i)), "" + ((char) decodeLabel(n.next.get(i))));
+			}
+
+			if(isFinal(n.getNumber())) {
+				pw.printf("%d [shape=doublecircle];%n", n.number);
+			}
+		}
+		
+		pw.println("}");
+	}
 }

@@ -5,7 +5,7 @@ import gnu.trove.list.array.TIntArrayList;
 import name.kazennikov.fsm.Constants;
 
 /**
- * Generic algorithm for constructing minimal AFSA (acyclic finite state automata) 
+ * Generic algorithm for constructing minimal DAFSA (deterministic acyclic finite state automata) 
  * or minimial tries.
  * 
  * @author Anton Kazennikov
@@ -73,7 +73,7 @@ public abstract class IntDaciukAlgoIndexed {
 	/**
 	 * public set final feature for state
 	 * 
-	 * @param state 
+	 * @param state state number
 	 * 
 	 * @return true, if state has changed, else false (this is possible then state is already final)
 	 */
@@ -82,7 +82,7 @@ public abstract class IntDaciukAlgoIndexed {
 	/**
 	 * Checks if state is final for this final feature
 	 * 
-	 * @param state
+	 * @param state state number
 	 * 
 	 * @return
 	 */
@@ -97,7 +97,7 @@ public abstract class IntDaciukAlgoIndexed {
 	/**
 	 * Add state to register
 	 * 
-	 * @param state 
+	 * @param state state number
 	 */
 	public abstract void regAdd(int state);
 
@@ -120,25 +120,25 @@ public abstract class IntDaciukAlgoIndexed {
 	/**
 	 * Add suffix to given new state
 	 * 
-	 * @param nodes node list
-	 * @param n base node
+	 * @param states state list
+	 * @param s base state number
 	 * @param seq sequence to add
 	 * @param fin final state
 	 */
-	protected TIntList addSuffix(TIntList nodes, int n, TIntList seq, int start, int end) {
-		int current = n;
+	protected TIntList addSuffix(TIntList states, int s, TIntList seq, int start, int end) {
+		int current = s;
 		
 		if(end > start) {
-			regRemove(n); // as we will change it by adding new states in the sequence
+			regRemove(s); // as we will change it by adding new states in the sequence
 		}
 
 		for(int i = start; i < end; i++) {
 			int in = seq.get(i);
-			int node = addState();
-			if(nodes != null)
-				nodes.add(node);
-			setNext(current, in, node);
-			current = node;
+			int state = addState();
+			if(states != null)
+				states.add(state);
+			setNext(current, in, state);
+			current = state;
 		}
 
 		// this check is needed only when we set finalty on already existing state (not fresh created one)
@@ -149,7 +149,7 @@ public abstract class IntDaciukAlgoIndexed {
 		
 		setFinal(current);
 
-		return nodes;
+		return states;
 	}
 
 	
@@ -157,7 +157,7 @@ public abstract class IntDaciukAlgoIndexed {
 	 * Compute common prefix for given input sequence
 	 * @param seq input sequence
 	 * 
-	 * @return list of nodes in prefix
+	 * @return list of states in prefix
 	 */
 	TIntList commonPrefix(TIntList seq) {
 		int current = startState;
@@ -181,21 +181,24 @@ public abstract class IntDaciukAlgoIndexed {
 	/**
 	 * Find first confluence state index
 	 * 
-	 * @param nodes state list 
+	 * @param states state list 
 	 * 
 	 * @return confluence index, or -1 if no confluence state found
 	 */
-	int findConfluence(TIntList nodes) {
-		for(int i = 0; i != nodes.size(); i++) {
-			if(isConfluence(nodes.get(i)))
+	int findConfluence(TIntList states) {
+		for(int i = 0; i != states.size(); i++) {
+			if(isConfluence(states.get(i)))
 				return i;
 		}
 
 		return -1;
 	}
 
-	
-	public void addMinWord(TIntList input) {
+	/**
+	 * Add sequence to the DAFSA
+	 * @param seq sequence to add
+	 */
+	public void addMinWord(TIntList seq) {
 		/*
 		 * 1. get common prefix
 		 * 2. find first confluence state in the common prefix
@@ -203,8 +206,8 @@ public abstract class IntDaciukAlgoIndexed {
 		 * 4. add suffix
 		 * 5. minimize(replaceOrRegister from the last state toward the first)
 		 */
-		TIntList nodeList = commonPrefix(input);
-		int confIdx = findConfluence(nodeList);
+		TIntList stateList = commonPrefix(seq);
+		int confIdx = findConfluence(stateList);
 		
 		/* index of stop for replaceOrRegister a pointer to the state before modifications
 		 * caused by this word addition. 
@@ -212,69 +215,73 @@ public abstract class IntDaciukAlgoIndexed {
 		 * The logic is: if the state isn't changed by replaceOrRegister we can safely bail out
 		 * as all states before this won't change either
 		*/
-		int stopIdx = confIdx == -1? nodeList.size() : confIdx; 
+		int stopIdx = confIdx == -1? stateList.size() : confIdx; 
 
 		if(confIdx > -1) {	
 			int idx = confIdx;
-			regRemove(nodeList.get(idx - 1)); // as we will clone confluence state and change previous to link the cloned
+			regRemove(stateList.get(idx - 1)); // as we will clone confluence state and change previous to link the cloned
 
-			while(idx < nodeList.size()) {
-				int prev = nodeList.get(idx - 1);
-				int cloned = cloneState(nodeList.get(idx));
-				nodeList.set(idx, cloned);
-				setNext(prev, input.get(confIdx - 1), cloned);
+			while(idx < stateList.size()) {
+				int prev = stateList.get(idx - 1);
+				int cloned = cloneState(stateList.get(idx));
+				stateList.set(idx, cloned);
+				setNext(prev, seq.get(confIdx - 1), cloned);
 				idx++;
 				confIdx++;
 			}
 		}
 
-		addSuffix(nodeList, nodeList.get(nodeList.size() - 1), input, nodeList.size() - 1, input.size());
-		replaceOrRegister(input, nodeList, stopIdx);
+		addSuffix(stateList, stateList.get(stateList.size() - 1), seq, stateList.size() - 1, seq.size());
+		replaceOrRegister(seq, stateList, stopIdx);
 	}
 
 
-	protected void replaceOrRegister(TIntList input, TIntList nodeList, int stop) {
-		if(nodeList.size() < 2)
+	protected void replaceOrRegister(TIntList input, TIntList stateList, int stop) {
+		if(stateList.size() < 2)
 			return;
 
-		int nodeIdx = nodeList.size() - 1;
+		int stateIdx = stateList.size() - 1;
 		int inputIdx = input.size() - 1;
 
-		while(nodeIdx > 0) {
-			int n = nodeList.get(nodeIdx);
+		while(stateIdx > 0) {
+			int n = stateList.get(stateIdx);
 			int regNode = regGet(n);
 
 			// stop
 			if(regNode == n) {
-				if(nodeIdx < stop)
+				if(stateIdx < stop)
 					return;
 			} else if(regNode == Constants.INVALID_STATE) {
 				regAdd(n);
 			} else {
 				int in = input.get(inputIdx);
-				regRemove(nodeList.get(nodeIdx - 1));
-				setNext(nodeList.get(nodeIdx - 1), in, regNode);
-				nodeList.set(nodeIdx, regNode);
+				regRemove(stateList.get(stateIdx - 1));
+				setNext(stateList.get(stateIdx - 1), in, regNode);
+				stateList.set(stateIdx, regNode);
 				removeState(n);
 			}
 			inputIdx--;
-			nodeIdx--;
+			stateIdx--;
 		}
 
 	}
 	
+	/**
+	 * Add sequence to trie
+	 * @param seq sequence to add
+	 */
 	public void add(TIntList seq) {
 		int current = startState;
 
 		int idx = 0;
 
 		while(idx < seq.size()) {
-			int n = getNext(current, seq.get(idx));
-			if(n == Constants.INVALID_STATE)
+			int s = getNext(current, seq.get(idx));
+			if(s == Constants.INVALID_STATE)
 				break;
 
 			idx++;
-			current = n;
+			current = s;
 		}
 	
 		addSuffix(null, current, seq, idx, seq.size());

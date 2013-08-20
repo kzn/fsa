@@ -30,6 +30,7 @@ public abstract class LongDaciukAlgo {
 	 * <li> final features
 	 * </ul>
 	 * @param state
+	 * 
 	 * @return
 	 */
 	public abstract int cloneState(int state);
@@ -104,11 +105,11 @@ public abstract class LongDaciukAlgo {
 	/**
 	 * Add suffix to given new state
 	 * 
-	 * @param n base node
+	 * @param n base state
 	 * @param seq sequence to add
 	 * @param fin final state
 	 */
-	protected TIntList addSuffix(TIntList nodes, int n, TLongList seq, int start, int end) {
+	protected TIntList addSuffix(TIntList states, int n, TLongList seq, int start, int end) {
 		int current = n;
 		
 		if(end > start) {
@@ -117,13 +118,13 @@ public abstract class LongDaciukAlgo {
 
 		for(int i = start; i < end; i++) {
 			long in = seq.get(i);
-			int node = addState();
+			int state = addState();
 			
-			if(nodes != null)
-				nodes.add(node);
+			if(states != null)
+				states.add(state);
 			
-			setNext(current, in, node);
-			current = node;
+			setNext(current, in, state);
+			current = state;
 		}
 
 		// this check is needed only when we set finalty on already existing state (not fresh created one)
@@ -134,7 +135,7 @@ public abstract class LongDaciukAlgo {
 		
 		setFinal(current);
 
-		return nodes;
+		return states;
 	}
 
 	
@@ -158,9 +159,9 @@ public abstract class LongDaciukAlgo {
 		return prefix;
 	}
 
-	int findConfluence(TIntList nodes) {
-		for(int i = 0; i != nodes.size(); i++) {
-			if(isConfluence(nodes.get(i)))
+	int findConfluence(TIntList states) {
+		for(int i = 0; i != states.size(); i++) {
+			if(isConfluence(states.get(i)))
 				return i;
 		}
 
@@ -178,62 +179,62 @@ public abstract class LongDaciukAlgo {
 		 * 5. minimize(replaceOrRegister from the last state toward the first)
 		 */
 
-		TIntList nodeList = commonPrefix(input);
+		TIntList stateList = commonPrefix(input);
 
-		int confIdx = findConfluence(nodeList);
+		int confIdx = findConfluence(stateList);
 		/* index of stop for replaceOrRegister a pointer to the state before modifications
 		 * caused by this word addition. 
 		 * 
 		 * The logic is: if the state isn't changed by replaceOrRegister we can safely bail out
 		 * as all states before this won't change either
 		*/
-		int stopIdx = confIdx == -1? nodeList.size() : confIdx; 
+		int stopIdx = confIdx == -1? stateList.size() : confIdx; 
 
 		if(confIdx > -1) {	
 			int idx = confIdx;
-			regRemove(nodeList.get(idx - 1)); // as we will clone confluence state and change previous to link the cloned
+			regRemove(stateList.get(idx - 1)); // as we will clone confluence state and change previous to link the cloned
 
-			while(idx < nodeList.size()) {
-				int prev = nodeList.get(idx - 1);
-				int cloned = cloneState(nodeList.get(idx));
-				nodeList.set(idx, cloned);
+			while(idx < stateList.size()) {
+				int prev = stateList.get(idx - 1);
+				int cloned = cloneState(stateList.get(idx));
+				stateList.set(idx, cloned);
 				setNext(prev, input.get(confIdx - 1), cloned);
 				idx++;
 				confIdx++;
 			}
 		}
 
-		addSuffix(nodeList, nodeList.get(nodeList.size() - 1), input, nodeList.size() - 1, input.size());
-		replaceOrRegister(input, nodeList, stopIdx);
+		addSuffix(stateList, stateList.get(stateList.size() - 1), input, stateList.size() - 1, input.size());
+		replaceOrRegister(input, stateList, stopIdx);
 	}
 
 
-	protected void replaceOrRegister(TLongList input, TIntList nodeList, int stop) {
-		if(nodeList.size() < 2)
+	protected void replaceOrRegister(TLongList input, TIntList stateList, int stop) {
+		if(stateList.size() < 2)
 			return;
 
-		int nodeIdx = nodeList.size() - 1;
+		int stateIdx = stateList.size() - 1;
 		int inputIdx = input.size() - 1;
 
-		while(nodeIdx > 0) {
-			int n = nodeList.get(nodeIdx);
-			int regNode = regGet(n);
+		while(stateIdx > 0) {
+			int n = stateList.get(stateIdx);
+			int regState = regGet(n);
 
 			// stop
-			if(regNode == n) {
-				if(nodeIdx < stop)
+			if(regState == n) {
+				if(stateIdx < stop)
 					return;
-			} else if(regNode == Constants.INVALID_STATE) {
+			} else if(regState == Constants.INVALID_STATE) {
 				regAdd(n);
 			} else {
 				long in = input.get(inputIdx);
-				regRemove(nodeList.get(nodeIdx - 1));
-				setNext(nodeList.get(nodeIdx - 1), in, regNode);
-				nodeList.set(nodeIdx, regNode);
+				regRemove(stateList.get(stateIdx - 1));
+				setNext(stateList.get(stateIdx - 1), in, regState);
+				stateList.set(stateIdx, regState);
 				removeState(n);
 			}
 			inputIdx--;
-			nodeIdx--;
+			stateIdx--;
 		}
 
 	}

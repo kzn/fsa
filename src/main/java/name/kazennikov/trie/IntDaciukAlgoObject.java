@@ -112,11 +112,11 @@ public abstract class IntDaciukAlgoObject<E> {
 	/**
 	 * Add suffix to given new state
 	 * 
-	 * @param startState base node
+	 * @param startState base state
 	 * @param seq sequence to add
 	 * @param fin final state
 	 */
-	protected List<E> addSuffix(List<E> nodes, E startState, TIntList seq, int start, int end) {
+	protected List<E> addSuffix(List<E> states, E startState, TIntList seq, int start, int end) {
 		E current = startState;
 
 		
@@ -126,11 +126,11 @@ public abstract class IntDaciukAlgoObject<E> {
 
 		for(int i = start; i < end; i++) {
 			int in = seq.get(i);
-			E node = addState();
-			if(nodes != null)
-				nodes.add(node);
-			setNext(current, in, node);
-			current = node;
+			E state = addState();
+			if(states != null)
+				states.add(state);
+			setNext(current, in, state);
+			current = state;
 		}
 
 		// this check is needed only when we set finalty on already existing state (not fresh created one)
@@ -141,7 +141,7 @@ public abstract class IntDaciukAlgoObject<E> {
 		
 		setFinal(current);
 
-		return nodes;
+		return states;
 	}
 
 	
@@ -165,9 +165,9 @@ public abstract class IntDaciukAlgoObject<E> {
 		return prefix;
 	}
 
-	public int findConfluence(List<E> nodes) {
-		for(int i = 0; i != nodes.size(); i++) {
-			if(isConfluence(nodes.get(i)))
+	public int findConfluence(List<E> states) {
+		for(int i = 0; i != states.size(); i++) {
+			if(isConfluence(states.get(i)))
 				return i;
 		}
 
@@ -185,64 +185,59 @@ public abstract class IntDaciukAlgoObject<E> {
 		 * 5. minimize(replaceOrRegister from the last state toward the first)
 		 */
 
-		List<E> nodeList = commonPrefix(input);
+		List<E> stateList = commonPrefix(input);
 
-		int confIdx = findConfluence(nodeList);
+		int confIdx = findConfluence(stateList);
 		/* index of stop for replaceOrRegister a pointer to the state before modifications
 		 * caused by this word addition. 
 		 * 
 		 * The logic is: if the state isn't changed by replaceOrRegister we can safely bail out
 		 * as all states before this won't change either
 		*/
-		int stopIdx = confIdx == 0? nodeList.size() : confIdx; 
+		int stopIdx = confIdx == 0? stateList.size() : confIdx; 
 
 		if(confIdx > 0) {	
 			int idx = confIdx;
-			regRemove(nodeList.get(idx - 1)); // as we will clone confluence state and change previous to link the cloned
+			regRemove(stateList.get(idx - 1)); // as we will clone confluence state and change previous to link the cloned
 
-			while(idx < nodeList.size()) {
-				E prev = nodeList.get(idx - 1);
-				E cloned = cloneState(nodeList.get(idx));
-				nodeList.set(idx, cloned);
+			while(idx < stateList.size()) {
+				E prev = stateList.get(idx - 1);
+				E cloned = cloneState(stateList.get(idx));
+				stateList.set(idx, cloned);
 				setNext(prev, input.get(confIdx - 1), cloned);
 				idx++;
 				confIdx++;
 			}
 		}
 
-
-
-		//List<E> nodeList = new ArrayList<E>(prefix);
-
-		addSuffix(nodeList, nodeList.get(nodeList.size() - 1), input, nodeList.size() - 1, input.size());
-
-		replaceOrRegister(input, nodeList, stopIdx);
+		addSuffix(stateList, stateList.get(stateList.size() - 1), input, stateList.size() - 1, input.size());
+		replaceOrRegister(input, stateList, stopIdx);
 	}
 
 
-	private void replaceOrRegister(TIntList input, List<E> nodeList, int stop) {
-		if(nodeList.size() < 2)
+	private void replaceOrRegister(TIntList input, List<E> stateList, int stop) {
+		if(stateList.size() < 2)
 			return;
 
-		int idx = nodeList.size() - 1;
+		int idx = stateList.size() - 1;
 		int inIdx = input.size() - 1;
 
 		while(idx > 0) {
-			E n = nodeList.get(idx);
-			E regNode = regGet(n);
+			E s = stateList.get(idx);
+			E regState = regGet(s);
 
 			// stop
-			if(regNode == n) {
+			if(regState == s) {
 				if(idx < stop)
 					return;
-			} else if(regNode == null) {
-				regAdd(n);
+			} else if(regState == null) {
+				regAdd(s);
 			} else {
 				int in = input.get(inIdx);
-				regRemove(nodeList.get(idx - 1));
-				setNext(nodeList.get(idx - 1), in, regNode);
-				nodeList.set(idx, regNode);
-				removeState(n);
+				regRemove(stateList.get(idx - 1));
+				setNext(stateList.get(idx - 1), in, regState);
+				stateList.set(idx, regState);
+				removeState(s);
 			}
 			inIdx--;
 			idx--;
