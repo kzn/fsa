@@ -11,7 +11,7 @@
  *
  *  $Id$
  */
-package name.kazennikov.fsm;
+package name.kazennikov.fsa;
 
 import java.util.Arrays;
 

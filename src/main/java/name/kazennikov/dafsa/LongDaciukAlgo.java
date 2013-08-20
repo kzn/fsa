@@ -1,32 +1,24 @@
-package name.kazennikov.trie;
+package name.kazennikov.dafsa;
 
 import gnu.trove.list.TIntList;
+import gnu.trove.list.TLongList;
 import gnu.trove.list.array.TIntArrayList;
-import name.kazennikov.fsm.Constants;
+import name.kazennikov.fsa.Constants;
 
-/**
- * Generic algorithm for constructing minimal DAFSA (deterministic acyclic finite state automata) 
- * or minimial tries.
- * 
- * @author Anton Kazennikov
- *
- */
-public abstract class IntDaciukAlgoIndexed {
+public abstract class LongDaciukAlgo {
 	/**
 	 * Find matching outbound transition for given state
-	 * 
 	 * @param state source state
 	 * @param input label
 	 * 
 	 * @return dest state, or -1, if no such transition exists
 	 */
-	public abstract int getNext(int state, int input);
+	public abstract int getNext(int state, long input);
 	
 	/**
 	 * Checks a state for confluence (if in has more that 1 inbound transitions)
-	 * 
 	 * @param state state to check
-	 * 
+
 	 * @return true if state has more than one inbound transitions
 	 */
 	public abstract boolean isConfluence(int state);
@@ -61,11 +53,10 @@ public abstract class IntDaciukAlgoIndexed {
 	 * 
 	 * @return true, if state has changed
 	 */
-	public abstract boolean setNext(int src, int label, int dest);
+	public abstract boolean setNext(int src, long next, int dest);
 	
 	/**
 	 * Removes given state from the automaton
-	 * 
 	 * @param state state index
 	 */
 	public abstract void removeState(int state);
@@ -73,31 +64,25 @@ public abstract class IntDaciukAlgoIndexed {
 	/**
 	 * public set final feature for state
 	 * 
-	 * @param state state number
-	 * 
+	 * @param state 
 	 * @return true, if state has changed, else false (this is possible then state is already final)
 	 */
 	public abstract boolean setFinal(int state);
 	
 	/**
 	 * Checks if state is final for this final feature
-	 * 
-	 * @param state state number
-	 * 
+	 * @param state
 	 * @return
 	 */
-	public abstract boolean hasFinal(int state);
+	public abstract boolean isFinal(int state);
 	
-	/**
-	 * Start state number
-	 */
 	protected int startState;
 
 
 	/**
 	 * Add state to register
 	 * 
-	 * @param state state number
+	 * @param state
 	 */
 	public abstract void regAdd(int state);
 
@@ -120,30 +105,31 @@ public abstract class IntDaciukAlgoIndexed {
 	/**
 	 * Add suffix to given new state
 	 * 
-	 * @param states state list
-	 * @param s base state number
+	 * @param n base state
 	 * @param seq sequence to add
 	 * @param fin final state
 	 */
-	protected TIntList addSuffix(TIntList states, int s, TIntList seq, int start, int end) {
-		int current = s;
+	protected TIntList addSuffix(TIntList states, int n, TLongList seq, int start, int end) {
+		int current = n;
 		
 		if(end > start) {
-			regRemove(s); // as we will change it by adding new states in the sequence
+			regRemove(n); // as we will change it by adding new states in the sequence
 		}
 
 		for(int i = start; i < end; i++) {
-			int in = seq.get(i);
+			long in = seq.get(i);
 			int state = addState();
+			
 			if(states != null)
 				states.add(state);
+			
 			setNext(current, in, state);
 			current = state;
 		}
 
 		// this check is needed only when we set finalty on already existing state (not fresh created one)
 		if(start == end) {
-			if(!hasFinal(current))
+			if(!isFinal(current))
 				regRemove(current);
 		}
 		
@@ -153,19 +139,14 @@ public abstract class IntDaciukAlgoIndexed {
 	}
 
 	
-	/**
-	 * Compute common prefix for given input sequence
-	 * @param seq input sequence
-	 * 
-	 * @return list of states in prefix
-	 */
-	TIntList commonPrefix(TIntList seq) {
+	
+	TIntList commonPrefix(TLongList seq) {
 		int current = startState;
-		TIntArrayList prefix = new TIntArrayList(seq.size() + 1);
+		TIntArrayList prefix = new TIntArrayList();
 		prefix.add(current);
 
 		for(int i = 0; i != seq.size(); i++) {
-			int in = seq.get(i);
+			long in = seq.get(i);
 			int next = getNext(current, in);
 
 			if(next == Constants.INVALID_STATE)
@@ -178,13 +159,6 @@ public abstract class IntDaciukAlgoIndexed {
 		return prefix;
 	}
 
-	/**
-	 * Find first confluence state index
-	 * 
-	 * @param states state list 
-	 * 
-	 * @return confluence index, or -1 if no confluence state found
-	 */
 	int findConfluence(TIntList states) {
 		for(int i = 0; i != states.size(); i++) {
 			if(isConfluence(states.get(i)))
@@ -194,11 +168,9 @@ public abstract class IntDaciukAlgoIndexed {
 		return -1;
 	}
 
-	/**
-	 * Add sequence to the DAFSA
-	 * @param seq sequence to add
-	 */
-	public void addMinWord(TIntList seq) {
+
+	
+	public void addMinWord(TLongList input) {
 		/*
 		 * 1. get common prefix
 		 * 2. find first confluence state in the common prefix
@@ -206,9 +178,10 @@ public abstract class IntDaciukAlgoIndexed {
 		 * 4. add suffix
 		 * 5. minimize(replaceOrRegister from the last state toward the first)
 		 */
-		TIntList stateList = commonPrefix(seq);
+
+		TIntList stateList = commonPrefix(input);
+
 		int confIdx = findConfluence(stateList);
-		
 		/* index of stop for replaceOrRegister a pointer to the state before modifications
 		 * caused by this word addition. 
 		 * 
@@ -225,18 +198,18 @@ public abstract class IntDaciukAlgoIndexed {
 				int prev = stateList.get(idx - 1);
 				int cloned = cloneState(stateList.get(idx));
 				stateList.set(idx, cloned);
-				setNext(prev, seq.get(confIdx - 1), cloned);
+				setNext(prev, input.get(confIdx - 1), cloned);
 				idx++;
 				confIdx++;
 			}
 		}
 
-		addSuffix(stateList, stateList.get(stateList.size() - 1), seq, stateList.size() - 1, seq.size());
-		replaceOrRegister(seq, stateList, stopIdx);
+		addSuffix(stateList, stateList.get(stateList.size() - 1), input, stateList.size() - 1, input.size());
+		replaceOrRegister(input, stateList, stopIdx);
 	}
 
 
-	protected void replaceOrRegister(TIntList input, TIntList stateList, int stop) {
+	protected void replaceOrRegister(TLongList input, TIntList stateList, int stop) {
 		if(stateList.size() < 2)
 			return;
 
@@ -245,19 +218,19 @@ public abstract class IntDaciukAlgoIndexed {
 
 		while(stateIdx > 0) {
 			int n = stateList.get(stateIdx);
-			int regNode = regGet(n);
+			int regState = regGet(n);
 
 			// stop
-			if(regNode == n) {
+			if(regState == n) {
 				if(stateIdx < stop)
 					return;
-			} else if(regNode == Constants.INVALID_STATE) {
+			} else if(regState == Constants.INVALID_STATE) {
 				regAdd(n);
 			} else {
-				int in = input.get(inputIdx);
+				long in = input.get(inputIdx);
 				regRemove(stateList.get(stateIdx - 1));
-				setNext(stateList.get(stateIdx - 1), in, regNode);
-				stateList.set(stateIdx, regNode);
+				setNext(stateList.get(stateIdx - 1), in, regState);
+				stateList.set(stateIdx, regState);
 				removeState(n);
 			}
 			inputIdx--;
@@ -266,24 +239,25 @@ public abstract class IntDaciukAlgoIndexed {
 
 	}
 	
-	/**
-	 * Add sequence to trie
-	 * @param seq sequence to add
-	 */
-	public void add(TIntList seq) {
+	public void add(TLongList seq) {
 		int current = startState;
 
 		int idx = 0;
 
 		while(idx < seq.size()) {
-			int s = getNext(current, seq.get(idx));
-			if(s == Constants.INVALID_STATE)
+			int n = getNext(current, seq.get(idx));
+			if(n == Constants.INVALID_STATE)
 				break;
 
 			idx++;
-			current = s;
+			current = n;
 		}
-	
+
 		addSuffix(null, current, seq, idx, seq.size());
 	}
+
+	
+
+
+
 }

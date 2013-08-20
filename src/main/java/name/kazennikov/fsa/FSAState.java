@@ -1,4 +1,4 @@
-package name.kazennikov.fsm;
+package name.kazennikov.fsa;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -7,17 +7,17 @@ import java.util.Set;
 
 import com.google.common.base.Objects;
 
-public class FSMState<E> {
+public class FSAState<E> {
 	int number;
-	List<FSMTransition<E>> transitions = new ArrayList<FSMTransition<E>>();
+	List<FSATransition<E>> transitions = new ArrayList<FSATransition<E>>();
 	E finals;
 	
 	public void setFinals(E finals) {
 		this.finals = finals;
 	}
 
-	public FSMTransition<E> addTransition(FSMState<E> to, int label) {
-		FSMTransition<E> t = new FSMTransition<E>(this, label, to);
+	public FSATransition<E> addTransition(FSAState<E> to, int label) {
+		FSATransition<E> t = new FSATransition<E>(this, label, to);
 		transitions.add(t);
 		return t;
 	}
@@ -30,9 +30,9 @@ public class FSMState<E> {
 	 * 
 	 * @return next state, or null if there is no such transition
 	 */
-	public FSMState<E> next(int input) {
+	public FSAState<E> next(int input) {
 		for(int i = 0; i < transitions.size(); i++) {
-			FSMTransition<E> t = transitions.get(i);
+			FSATransition<E> t = transitions.get(i);
 			
 			if(t.label == input)
 				return t.dest;
@@ -42,17 +42,17 @@ public class FSMState<E> {
 	}
 
 
-	public void toDot(PrintWriter pw, Set<FSMState<E>> visited) {
+	public void toDot(PrintWriter pw, Set<FSAState<E>> visited) {
 		if(visited.contains(this))
 			return;
 
 		visited.add(this);
 
-		for(FSMTransition<E> t : transitions) {
+		for(FSATransition<E> t : transitions) {
 			pw.printf("%d -> %d [label=\"%d\"];%n", number, t.dest.number, t.label);
 		}
 
-		for(FSMTransition<E> t : transitions) {
+		for(FSATransition<E> t : transitions) {
 			t.dest.toDot(pw, visited);
 		}
 
@@ -67,7 +67,7 @@ public class FSMState<E> {
 				.toString();
 	}
 	
-	public List<FSMTransition<E>> getTransitions() {
+	public List<FSATransition<E>> getTransitions() {
 		return transitions;
 	}
 	

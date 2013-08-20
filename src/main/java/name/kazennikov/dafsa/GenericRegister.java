@@ -1,4 +1,4 @@
-package name.kazennikov.trie;
+package name.kazennikov.dafsa;
 
 import java.util.HashMap;
 

@@ -1,4 +1,6 @@
-package name.kazennikov.trie;
+package name.kazennikov.sandbox;
+
+import name.kazennikov.dafsa.IntRegister;
 
 
 public class IntRegisterTest {

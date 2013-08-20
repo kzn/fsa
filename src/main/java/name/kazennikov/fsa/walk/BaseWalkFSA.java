@@ -1,9 +1,9 @@
-package name.kazennikov.trie;
+package name.kazennikov.fsa.walk;
 
 import gnu.trove.list.array.TIntArrayList;
-import name.kazennikov.fsm.Constants;
+import name.kazennikov.fsa.Constants;
 
-public class IntBaseTrie {
+public class BaseWalkFSA {
 	TIntArrayList src = new TIntArrayList();
 	TIntArrayList dest = new TIntArrayList();
 	TIntArrayList labels = new TIntArrayList();
@@ -12,27 +12,6 @@ public class IntBaseTrie {
 	TIntArrayList stateEnd = new TIntArrayList();
 	
 	int lastState = 0;
-	/**
-	 * This constructor is based on following assumptions:
-	 * <ul>
-	 * <li> the state indexes are continuous and start from 0
-	 * <li> transitions sorted by start state (and may be by input symbol)
-	 * <li> 
-	 * </ul>
-	 * @param builder
-	 */
-	public IntBaseTrie(AbstractIntTrieBuilder builder) {
-		for(AbstractIntTrieBuilder.State n : builder.states) {
-			stateStart.add(src.size());
-			for(int i = 0; i < n.next.size(); i++) {
-				int src = n.getNumber();
-				int dest = AbstractIntTrieBuilder.decodeDest(n.next.get(i));
-				int label = AbstractIntTrieBuilder.decodeLabel(n.next.get(i));
-				addTransition(src, label, dest);
-			}
-			stateEnd.add(src.size());
-		}
-	}
 	
 	public void addTransition(int src, int label, int dest) {
 		this.src.add(src);

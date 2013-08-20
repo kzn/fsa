@@ -11,7 +11,7 @@
  *
  *  $Id$
  */
-package name.kazennikov.fsm;
+package name.kazennikov.fsa;
 
 public class Constants {
 	public static final int NO = -1;

@@ -1,4 +1,4 @@
-package name.kazennikov.trie;
+package name.kazennikov.dafsa;
 
 import gnu.trove.list.array.TLongArrayList;
 
@@ -9,7 +9,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.PriorityQueue;
 
-import name.kazennikov.fsm.Constants;
+import name.kazennikov.fsa.Constants;
 
 /**
  * Abstract DAFSA builder. It almost complete implementation, where only
@@ -24,7 +24,7 @@ import name.kazennikov.fsm.Constants;
  * @author Anton Kazennikov
  *
  */
-public abstract class AbstractIntTrieBuilder extends IntDaciukAlgoIndexed {
+public abstract class AbstractIntDAFSA extends IntDaciukAlgoIndexed {
 	
 	/**
 	 * Decode label from the transition table value
@@ -276,7 +276,7 @@ public abstract class AbstractIntTrieBuilder extends IntDaciukAlgoIndexed {
 	});
 	int startState;
 	
-	public AbstractIntTrieBuilder() {
+	public AbstractIntDAFSA() {
 		initFinals();
 		startState = addState();
 	}

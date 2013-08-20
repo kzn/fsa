@@ -1,4 +1,4 @@
-package name.kazennikov.trie;
+package name.kazennikov.sandbox;
 
 import gnu.trove.iterator.TIntIterator;
 import gnu.trove.iterator.TIntObjectIterator;
@@ -13,6 +13,9 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
+
+import name.kazennikov.dafsa.GenericRegister;
+import name.kazennikov.dafsa.IntDaciukAlgoObject;
 
 public class DaciukTest1 extends IntDaciukAlgoObject<DaciukTest1.Node> {
 	

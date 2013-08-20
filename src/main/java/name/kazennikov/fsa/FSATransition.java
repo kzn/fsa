@@ -1,22 +1,22 @@
-package name.kazennikov.fsm;
+package name.kazennikov.fsa;
 
-public class FSMTransition<E> {
-	FSMState<E> src;
+public class FSATransition<E> {
+	FSAState<E> src;
 	int label;
-	FSMState<E> dest;
+	FSAState<E> dest;
 	
-	public FSMTransition(FSMState<E> src, int label, FSMState<E> dest) {
+	public FSATransition(FSAState<E> src, int label, FSAState<E> dest) {
 		this.src = src;
 		this.label = label;
 		this.dest = dest;
 	}
 	
 	
-	public FSMState<E> getSrc() {
+	public FSAState<E> getSrc() {
 		return src;
 	}
 	
-	public FSMState<E> getDest() {
+	public FSAState<E> getDest() {
 		return dest;
 	}
 	

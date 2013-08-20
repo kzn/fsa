@@ -1,22 +1,15 @@
-package name.kazennikov.trie;
+package name.kazennikov.fsa.walk;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import name.kazennikov.fsm.Constants;
+import name.kazennikov.fsa.Constants;
 
-public class IntTrieInt extends IntBaseTrie {
+public class WalkFSAInt extends BaseWalkFSA {
 	
 	List<int[]> finals = new ArrayList<>();
 	public static final int[] EMPTY = new int[0];
 	
-	public IntTrieInt(IntTrieBuilderInt builder) {
-		super(builder);
-		
-		for(int i = 0; i < builder.size(); i++) {
-				finals.add(builder.getFinals(i).toArray());
-			}
-		}
 	
 	public int[] getFinals(int state) {
 		int[] fin = finals.get(state);

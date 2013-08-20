@@ -1,8 +1,8 @@
-package name.kazennikov.trie;
+package name.kazennikov.dafsa;
 
 import gnu.trove.list.array.TByteArrayList;
 
-public class IntTrieBuilderBoolean extends AbstractIntTrieBuilder {
+public class IntDAFSABoolean extends AbstractIntDAFSA {
 	TByteArrayList finals;
 	
 	@Override

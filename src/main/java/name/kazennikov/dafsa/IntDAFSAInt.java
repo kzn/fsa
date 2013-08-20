@@ -1,4 +1,4 @@
-package name.kazennikov.trie;
+package name.kazennikov.dafsa;
 
 import gnu.trove.set.hash.TIntHashSet;
 
@@ -6,11 +6,11 @@ import java.util.ArrayList;
 
 import com.google.common.base.Objects;
 
-public class IntTrieBuilderInt extends AbstractIntTrieBuilder {
+public class IntDAFSAInt extends AbstractIntDAFSA {
 	
 	ArrayList<TIntHashSet> finals;
 	
-	public IntTrieBuilderInt() {
+	public IntDAFSAInt() {
 		super();
 	}
 
