@@ -8,15 +8,14 @@ public class IntTrieBoolean extends IntBaseTrie {
 	public IntTrieBoolean(IntTrieBuilderBoolean builder) {
 		super(builder);
 		
-		for(BaseIntTrieBuilder.BaseNode n : builder.nodes) {
-			IntTrieBuilderBoolean.Node node = (IntTrieBuilderBoolean.Node) n;
+		for(int i = 0; i < builder.size(); i++) {
 			
-			if(node.fin)
-				finals.add(node.getNumber());
+			if(builder.isFinalState(i))
+				finals.add(i);
 		}
 	}
 	
-	public boolean isFinal(int state) {
+	public boolean isFinalState(int state) {
 		return finals.contains(state);
 	}
 

@@ -86,7 +86,7 @@ public abstract class IntDaciukAlgoIndexed {
 	 * 
 	 * @return
 	 */
-	public abstract boolean isFinal(int state);
+	public abstract boolean hasFinal(int state);
 	
 	/**
 	 * Start state number
@@ -143,7 +143,7 @@ public abstract class IntDaciukAlgoIndexed {
 
 		// this check is needed only when we set finalty on already existing state (not fresh created one)
 		if(start == end) {
-			if(!isFinal(current))
+			if(!hasFinal(current))
 				regRemove(current);
 		}
 		

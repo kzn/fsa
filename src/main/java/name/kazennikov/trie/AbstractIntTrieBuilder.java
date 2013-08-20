@@ -400,6 +400,13 @@ public abstract class AbstractIntTrieBuilder extends IntDaciukAlgoIndexed {
 	public abstract void newFinal(int state);
 	
 	/**
+	 * Checks if state is final
+	 * @param state state number
+	 */
+	public abstract boolean isFinalState(int state);
+	
+	
+	/**
 	 * Output this DAFSA to dot format
 	 * @param pw print writer
 	 * @throws IOException
@@ -419,7 +426,7 @@ public abstract class AbstractIntTrieBuilder extends IntDaciukAlgoIndexed {
 				pw.printf("%d -> %d [label=\"%s\"];%n", n.number, decodeDest(n.next.get(i)), "" + ((char) decodeLabel(n.next.get(i))));
 			}
 
-			if(isFinal(n.getNumber())) {
+			if(isFinalState(n.getNumber())) {
 				pw.printf("%d [shape=doublecircle];%n", n.number);
 			}
 		}

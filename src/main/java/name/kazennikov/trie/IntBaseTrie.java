@@ -21,13 +21,13 @@ public class IntBaseTrie {
 	 * </ul>
 	 * @param builder
 	 */
-	public IntBaseTrie(BaseIntTrieBuilder builder) {
-		for(BaseIntTrieBuilder.BaseNode n : builder.nodes) {
+	public IntBaseTrie(AbstractIntTrieBuilder builder) {
+		for(AbstractIntTrieBuilder.State n : builder.states) {
 			stateStart.add(src.size());
 			for(int i = 0; i < n.next.size(); i++) {
 				int src = n.getNumber();
-				int dest = n.dest(n.next.get(i));
-				int label = n.label(n.next.get(i));
+				int dest = AbstractIntTrieBuilder.decodeDest(n.next.get(i));
+				int label = AbstractIntTrieBuilder.decodeLabel(n.next.get(i));
 				addTransition(src, label, dest);
 			}
 			stateEnd.add(src.size());

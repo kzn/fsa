@@ -1,79 +1,63 @@
 package name.kazennikov.trie;
 
+import gnu.trove.list.array.TByteArrayList;
 
-public class IntTrieBuilderBoolean extends BaseIntTrieBuilder {
+public class IntTrieBuilderBoolean extends AbstractIntTrieBuilder {
+	TByteArrayList finals;
 	
-	public class Node extends BaseIntTrieBuilder.BaseNode {
-		boolean fin;
-
-		@Override
-		int hc() {
-			int hash = fin? 1 : 0 << 31;
-			return hash + super.hc();
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if(!(obj instanceof Node))
-				return false;
-			Node other = (Node) obj;
-			
-			if(other.fin != this.fin)
-				return false;
-			
-
-			return super.equals(obj);
-		}
-
-		@Override
-		public void reset() {
-			fin = false;
-			super.reset();
-		}
-
-		@Override
-		public BaseNode assign(BaseNode node) {
-			if(node instanceof Node) {
-				((Node) node).fin = fin;
-			}
-			
-			return super.assign(node);
-		}
-		
-		public boolean addFinal(boolean fin) {
-			validHashCode = this.fin == fin;
-			this.fin = fin;
-			return !validHashCode;
-		}
-
-
-		public boolean removeFinal(boolean fin) {
-			validHashCode = this.fin != fin;
-			return !validHashCode;
-		}
-
+	@Override
+	public int finalHash(int state) {
+		return finals.get(state);
 	}
 
 	@Override
-	public BaseNode newNode() {
-		return new Node();
+	public boolean finalEquals(int state1, int state2) {
+		return finals.get(state1) ==  finals.get(state2);
+	}
+
+	@Override
+	public void finalReset(int state) {
+		finals.set(state, (byte)0);
+		states.get(state).validHashCode = false;
+		
+	}
+
+	@Override
+	public void finalAssign(int destState, int srcState) {
+		finals.set(destState, finals.get(srcState));
+	}
+	
+	@Override
+	public void initFinals() {
+		finals = new TByteArrayList();
+	}
+
+	@Override
+	public void newFinal(int state) {
+		finals.add((byte)0);
 	}
 	
 	boolean finalValue;
 	
-
 	public void setFinalValue(boolean finalValue) {
 		this.finalValue = finalValue;
 	}
 
 	@Override
 	public boolean setFinal(int state) {
-		return ((Node)nodes.get(state)).addFinal(finalValue);
+		finals.set(state, finalValue? (byte)1 : (byte)0);
+		states.get(state).validHashCode = false;
+		return true;
 	}
 
 	@Override
-	public boolean isFinal(int state) {
-		return ((Node)nodes.get(state)).fin == finalValue;
+	public boolean hasFinal(int state) {
+		return (finals.get(state) == 1) == finalValue;
+	}
+	
+	@Override
+	public boolean isFinalState(int state) {
+		return finals.get(state) != 0;
 	}
 
 

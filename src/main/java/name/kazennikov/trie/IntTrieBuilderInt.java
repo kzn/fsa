@@ -2,75 +2,53 @@ package name.kazennikov.trie;
 
 import gnu.trove.set.hash.TIntHashSet;
 
-public class IntTrieBuilderInt extends BaseIntTrieBuilder {
+import java.util.ArrayList;
+
+import com.google.common.base.Objects;
+
+public class IntTrieBuilderInt extends AbstractIntTrieBuilder {
 	
-	public class Node extends BaseIntTrieBuilder.BaseNode {
-		TIntHashSet fin = null;
-
-		@Override
-		int hc() {
-			int hash = fin == null? 0 : fin.hashCode();
-			return hash + super.hc();
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if(!(obj instanceof Node))
-				return false;
-			Node other = (Node) obj;
-			
-			if((other.fin == null && fin != null) || (fin == null && other.fin != null))
-				return false;
-			
-			
-			
-			if(fin != null && !other.fin.equals(fin))
-				return false;
-
-			return super.equals(obj);
-		}
-
-		@Override
-		public void reset() {
-			fin = null;
-			
-			super.reset();
-		}
-
-		@Override
-		public BaseNode assign(BaseNode node) {
-			if(node instanceof Node) {
-				if(fin == null) {
-					((Node) node).fin = null;
-				} else {
-					if(((Node) node).fin == null) {
-						((Node) node).fin = new TIntHashSet(fin);
-					}
-				}				
-			}
-			
-			return super.assign(node);
-		}
-		
-		public boolean addFinal(int fin) {
-			if(this.fin == null)
-				this.fin = new TIntHashSet(3);
-			
-			validHashCode = !this.fin.add(fin);
-			return !validHashCode;
-		}
-
-
-		public boolean removeFinal(int fin) {
-			validHashCode = !this.fin.remove(fin);
-			return !validHashCode;
-		}
-
+	ArrayList<TIntHashSet> finals;
+	
+	public IntTrieBuilderInt() {
+		super();
 	}
 
 	@Override
-	public BaseNode newNode() {
-		return new Node();
+	public int finalHash(int state) {
+		return finals.get(state).hashCode();
+	}
+
+	@Override
+	public boolean finalEquals(int state1, int state2) {
+		return Objects.equal(finals.get(state1), finals.get(state2));
+	}
+
+	@Override
+	public void finalReset(int state) {
+		finals.get(state).clear();
+		states.get(state).validHashCode = false;
+		
+	}
+
+	@Override
+	public void finalAssign(int destState, int srcState) {
+		TIntHashSet dest = finals.get(destState);
+		TIntHashSet src = finals.get(srcState);
+		dest.clear();
+		dest.addAll(src);
+
+	}
+	
+	@Override
+	public void initFinals() {
+		finals = new ArrayList<>();
+	}
+
+	@Override
+	public void newFinal(int state) {
+		finals.add(new TIntHashSet(3));
+		
 	}
 	
 	int finalValue;
@@ -81,17 +59,23 @@ public class IntTrieBuilderInt extends BaseIntTrieBuilder {
 
 	@Override
 	public boolean setFinal(int state) {
-		return ((Node)nodes.get(state)).addFinal(finalValue);
+		boolean b = finals.get(state).add(finalValue);
+		states.get(state).validHashCode = false;
+		return b;
 	}
 
 	@Override
-	public boolean isFinal(int state) {
-		Node n = (Node) nodes.get(state);
-		
-		if(n.fin == null)
-			return false;
-		
-		return n.fin.contains(finalValue);
+	public boolean hasFinal(int state) {
+		return finals.get(state).contains(finalValue);
+	}
+	
+	public TIntHashSet getFinals(int state) {
+		return finals.get(state);
+	}
+
+	@Override
+	public boolean isFinalState(int state) {
+		return !finals.get(state).isEmpty();
 	}
 
 }
