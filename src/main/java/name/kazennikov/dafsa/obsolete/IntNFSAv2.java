@@ -29,6 +29,7 @@ public class IntNFSAv2 {
 		TIntSet f = finals.get(state);
 		if(f == null) {
 			f = new TIntHashSet();
+			finals.set(state, f);
 		}
 		f.add(fin);
 	}
@@ -59,11 +60,14 @@ public class IntNFSAv2 {
 		@Override
 		public void states(int states) {
 			nfsa = new IntNFSAv2();
+			nfsa.stateStart = new int[states];
+			nfsa.stateEnd = new int[states];
 		}
 
 		@Override
 		public void state(int state) {
 			this.state = state;
+			nfsa.finals.add(null);
 		}
 
 		@Override
