@@ -140,6 +140,10 @@ public class IntNFSAv2 {
 		}
 
 	}
+	
+	public Walker makeWalker() {
+		return new Walker();
+	}
 
 
 	public class Walker implements CharFSTWalker {
@@ -163,7 +167,7 @@ public class IntNFSAv2 {
 
 				if(ch == inCh || upperCh == inCh || inCh == 0) {
 
-					char outCh = (char) out.get(start);
+					char outCh = out.get(start);
 					int nextState = next.get(start);
 					if(outCh != 0)
 						sb.append(outCh);
@@ -189,7 +193,7 @@ public class IntNFSAv2 {
 
 					if(ch == inCh) {
 
-						char outCh = (char) out.get(start);
+						char outCh = out.get(start);
 						int nextState = next.get(start);
 						if(outCh != 0)
 							sb.append(outCh);
