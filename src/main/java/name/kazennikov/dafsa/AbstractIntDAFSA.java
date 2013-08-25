@@ -419,7 +419,7 @@ public abstract class AbstractIntDAFSA extends IntDaciukAlgoIndexed {
 
 		for(State n : states) {
 			if(n.getNumber() == startState) {
-				pw.printf("%d [fillColor=\"gray\"];%n", n.getNumber());
+				//pw.printf("%d [fillcolor=\"gray\"];%n", n.getNumber());
 			}
 			
 			for(int i = 0; i < n.outbound(); i++) {
@@ -432,5 +432,11 @@ public abstract class AbstractIntDAFSA extends IntDaciukAlgoIndexed {
 		}
 		
 		pw.println("}");
+	}
+	
+	public void toDot(String fileName) throws IOException {
+		PrintWriter pw = new PrintWriter(fileName);
+		toDot(pw);
+		pw.close();
 	}
 }
