@@ -809,7 +809,7 @@ public interface IntFSA {
 		@Override
 		public void endFinals() {
 			if(!finals.isEmpty()) {
-				pw.printf("%d [shape=doublecircle, label=\"%d %s\"];%n", currentState, currentState, finals);
+				pw.printf("%d [shape=doublecircle, label=\"%d\"];%n", currentState, currentState);
 			} else {
 				pw.printf("%d [label=\"%d\"];%n", currentState, currentState);
 			}

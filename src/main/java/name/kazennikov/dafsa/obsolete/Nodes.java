@@ -45,10 +45,12 @@ public class Nodes {
 			hashCode = 1;
 		}
 		
+		@Override
 		public void setNumber(int num) {
 			this.number = num;
 		}
 		
+		@Override
 		public int getNumber() {
 			return number;
 		}
@@ -312,10 +314,12 @@ public class Nodes {
 			hashCode = 1;
 		}
 		
+		@Override
 		public void setNumber(int num) {
 			this.number = num;
 		}
 		
+		@Override
 		public int getNumber() {
 			return number;
 		}
@@ -632,10 +636,12 @@ public class Nodes {
 			hashCode = 1;
 		}
 		
+		@Override
 		public void setNumber(int num) {
 			this.number = num;
 		}
 		
+		@Override
 		public int getNumber() {
 			return number;
 		}
@@ -895,10 +901,12 @@ public class Nodes {
 			hashCode = 1;
 		}
 		
+		@Override
 		public void setNumber(int num) {
 			this.number = num;
 		}
 		
+		@Override
 		public int getNumber() {
 			return number;
 		}
@@ -1161,10 +1169,12 @@ public class Nodes {
 			hashCode = 1;
 		}
 		
+		@Override
 		public void setNumber(int num) {
 			this.number = num;
 		}
 		
+		@Override
 		public int getNumber() {
 			return number;
 		}
@@ -1306,11 +1316,11 @@ public class Nodes {
 				return true;
 			if(obj == null)
 				return false;
-			if(!(obj instanceof CharSimpleNode))
+			if(!(obj instanceof IntSimpleNode))
 				return false;
 			
 
-			CharSimpleNode other = (CharSimpleNode) obj;
+			IntSimpleNode other = (IntSimpleNode) obj;
 			if(fin == null) {
 				if(other.fin != null)
 					return false;
@@ -1385,7 +1395,7 @@ public class Nodes {
 				
 				@Override
 				public boolean hasNext() {
-					return pos < outChars.size();
+					return pos + 1 < outChars.size();
 				}
 				
 				@Override
