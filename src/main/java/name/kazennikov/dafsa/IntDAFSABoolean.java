@@ -1,6 +1,7 @@
 package name.kazennikov.dafsa;
 
 import gnu.trove.list.array.TByteArrayList;
+import name.kazennikov.fsa.IntFSABooleanEvents;
 
 public class IntDAFSABoolean extends AbstractIntDAFSA {
 	TByteArrayList finals;
@@ -59,6 +60,26 @@ public class IntDAFSABoolean extends AbstractIntDAFSA {
 	public boolean isFinalState(int state) {
 		return finals.get(state) != 0;
 	}
+	
+	public void emit(IntFSABooleanEvents events) {
+		for(int i = 0; i < states.size(); i++) {
+			State s = states.get(i);
+			events.startState(i);
+			
+			events.setFinalValue(finals.get(i) == 1);
+			events.setFinal();
+
+			
+			for(int j = 0; j < s.next.size(); j++) {
+				int input = decodeLabel(s.next.get(j));
+				int dest = decodeDest(s.next.get(j));
+				events.addTransition(input, dest);
+			}
+			
+			events.endState();
+		}
+	}
+
 
 
 

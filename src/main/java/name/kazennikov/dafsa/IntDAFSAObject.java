@@ -5,6 +5,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import name.kazennikov.fsa.IntFSAObjectEvents;
+
 import com.google.common.base.Objects;
 
 public class IntDAFSAObject<E> extends AbstractIntDAFSA {
@@ -71,5 +73,24 @@ public class IntDAFSAObject<E> extends AbstractIntDAFSA {
 		finals.get(destState).addAll(finals.get(srcState));
 		
 	}
+	
+	public void emit(IntFSAObjectEvents<Set<E>> events) {
+		for(int i = 0; i < states.size(); i++) {
+			State s = states.get(i);
+			events.startState(i);
+			
+			events.setFinalValue(finals.get(i));
+			events.setFinal();
+			
+			for(int j = 0; j < s.next.size(); j++) {
+				int input = decodeLabel(s.next.get(j));
+				int dest = decodeDest(s.next.get(j));
+				events.addTransition(input, dest);
+			}
+			
+			events.endState();
+		}
+	}
+
 
 }

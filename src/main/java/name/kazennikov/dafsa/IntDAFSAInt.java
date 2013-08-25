@@ -4,6 +4,8 @@ import gnu.trove.set.hash.TIntHashSet;
 
 import java.util.ArrayList;
 
+import name.kazennikov.fsa.IntFSAObjectEvents;
+
 import com.google.common.base.Objects;
 
 public class IntDAFSAInt extends AbstractIntDAFSA {
@@ -77,5 +79,48 @@ public class IntDAFSAInt extends AbstractIntDAFSA {
 	public boolean isFinalState(int state) {
 		return !finals.get(state).isEmpty();
 	}
+	
+	public void emit(IntFSAObjectEvents<int[]> events) {
+		for(int i = 0; i < states.size(); i++) {
+			State s = states.get(i);
+			events.startState(i);
+			
+			events.setFinalValue(finals.get(i).toArray());
+			events.setFinal();
+			
+			for(int j = 0; j < s.next.size(); j++) {
+				int input = decodeLabel(s.next.get(j));
+				int dest = decodeDest(s.next.get(j));
+				events.addTransition(input, dest);
+			}
+			
+			events.endState();
+		}
+	}
+
+//	@Override
+//	public void toDot(PrintWriter pw) throws IOException {
+//		pw.println("digraph fsm {");
+//		pw.println("rankdir=LR;");
+//		pw.println("node [shape=box,style=filled, fillcolor=white]");
+//		
+//
+//		for(State n : states) {
+//			if(n.getNumber() == startState) {
+//				pw.printf("%d [fillcolor=\"gray\"];%n", n.getNumber());
+//			}
+//			
+//			for(int i = 0; i < n.outbound(); i++) {
+//				pw.printf("%d -> %d [label=\"%s\"];%n", n.number, decodeDest(n.next.get(i)), "" + ((char) decodeLabel(n.next.get(i))));
+//			}
+//
+//			if(isFinalState(n.getNumber())) {
+//				pw.printf("%d [fillcolor=gray,label=\"%d%s\"];%n", n.number, n.number, finals.get(n.getNumber()));
+//			}
+//		}
+//		
+//		pw.println("}");
+//	}
+
 
 }
