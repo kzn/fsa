@@ -1,0 +1,20 @@
+apply plugin: 'java'
+apply plugin: 'maven'
+
+if(project.hasProperty('standalone')) {
+    group = 'name.kazennikov'
+    description = "fsa"
+    version = '0.0.1-SNAPSHOT'
+}
+
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+
+dependencies {
+    compile 'net.sf.trove4j:trove4j:3.0.3'
+    compile 'com.google.guava:guava:12.0'
+}
