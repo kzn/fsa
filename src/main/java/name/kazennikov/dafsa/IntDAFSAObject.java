@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import name.kazennikov.fsa.IntFSAObjectEvents;
+import name.kazennikov.fsa.IntFSAObjectEventHandler;
 
 import com.google.common.base.Objects;
 
@@ -74,7 +74,7 @@ public class IntDAFSAObject<E> extends AbstractIntDAFSA {
 		
 	}
 	
-	public void emit(IntFSAObjectEvents<Set<E>> events) {
+	public void emit(IntFSAObjectEventHandler<Set<E>> events) {
 		for(int i = 0; i < states.size(); i++) {
 			State s = states.get(i);
 			events.startState(i);

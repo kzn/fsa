@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import name.kazennikov.fsa.Constants;
-import name.kazennikov.fsa.IntFSAObjectEvents;
+import name.kazennikov.fsa.IntFSAObjectEventHandler;
 
 public class WalkFSAInt extends BaseWalkFSA {
 	
@@ -28,7 +28,7 @@ public class WalkFSAInt extends BaseWalkFSA {
 		return getFinals(state);
 	}
 	
-	public static class Builder implements IntFSAObjectEvents<int[]> {
+	public static class Builder implements IntFSAObjectEventHandler<int[]> {
 		WalkFSAInt fsa = new WalkFSAInt();
 		int[] values;
 		@Override

@@ -7,7 +7,7 @@ package name.kazennikov.fsa;
  * @author Anton Kazennikov
  *
  */
-public interface IntFSAObjectEvents<E> extends IntFSAEvents {
+public interface IntFSAObjectEventHandler<E> extends IntFSAEventHandler {
 	public void setFinalValue(E object);
 
 }

@@ -4,7 +4,7 @@ import gnu.trove.set.hash.TIntHashSet;
 
 import java.util.ArrayList;
 
-import name.kazennikov.fsa.IntFSAObjectEvents;
+import name.kazennikov.fsa.IntFSAObjectEventHandler;
 
 import com.google.common.base.Objects;
 
@@ -89,7 +89,7 @@ public class IntDAFSAInt extends AbstractIntDAFSA {
 	 * Emit current FSA state to events 
 	 * @param events events object
 	 */
-	public void emit(IntFSAObjectEvents<int[]> events) {
+	public void emit(IntFSAObjectEventHandler<int[]> events) {
 		for(int i = 0; i < states.size(); i++) {
 			State s = states.get(i);
 			events.startState(i);

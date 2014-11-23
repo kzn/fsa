@@ -9,7 +9,7 @@ package name.kazennikov.fsa;
  * @author Anton Kazennikov
  *
  */
-public interface IntFSAEvents {
+public interface IntFSAEventHandler {
 	/**
 	 * Announce that that current state changed to given state number.
 	 * This also resets the final value stored by events processor

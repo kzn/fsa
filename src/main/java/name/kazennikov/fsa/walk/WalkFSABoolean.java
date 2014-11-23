@@ -1,7 +1,7 @@
 package name.kazennikov.fsa.walk;
 
 import gnu.trove.set.hash.TIntHashSet;
-import name.kazennikov.fsa.IntFSABooleanEvents;
+import name.kazennikov.fsa.IntFSABooleanEventHandler;
 
 public class WalkFSABoolean extends BaseWalkFSA {
 	TIntHashSet finals = new TIntHashSet();
@@ -11,7 +11,7 @@ public class WalkFSABoolean extends BaseWalkFSA {
 	}
 	
 	
-	public static class Builder implements IntFSABooleanEvents {
+	public static class Builder implements IntFSABooleanEventHandler {
 		WalkFSABoolean fsa = new WalkFSABoolean();
 		boolean isFinal;
 		int state;

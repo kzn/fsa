@@ -1,7 +1,7 @@
 package name.kazennikov.dafsa;
 
 import gnu.trove.list.array.TByteArrayList;
-import name.kazennikov.fsa.IntFSABooleanEvents;
+import name.kazennikov.fsa.IntFSABooleanEventHandler;
 
 public class IntDAFSABoolean extends AbstractIntDAFSA {
 	TByteArrayList finals;
@@ -61,7 +61,7 @@ public class IntDAFSABoolean extends AbstractIntDAFSA {
 		return finals.get(state) != 0;
 	}
 	
-	public void emit(IntFSABooleanEvents events) {
+	public void emit(IntFSABooleanEventHandler events) {
 		for(int i = 0; i < states.size(); i++) {
 			State s = states.get(i);
 			events.startState(i);
