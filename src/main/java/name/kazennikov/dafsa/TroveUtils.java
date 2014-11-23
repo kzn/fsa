@@ -1,18 +1,29 @@
 package name.kazennikov.dafsa;
 
+import gnu.trove.list.array.TCharArrayList;
 import gnu.trove.list.array.TIntArrayList;
 
 public class TroveUtils {
 	public static void expand(TIntArrayList dest, CharSequence s) {
-		dest.clear();
+		dest.resetQuick();
 		
 		for(int i = 0; i < s.length(); i++) {
 			dest.add(s.charAt(i));
 		}
 	}
 	
-	public static void expand(TIntArrayList dest, CharSequence wordForm, CharSequence  lemma) {
-		dest.clear();
+	public static void expand(TCharArrayList dest, CharSequence s) {
+		dest.resetQuick();
+		
+		for(int i = 0; i < s.length(); i++) {
+			dest.add(s.charAt(i));
+		}
+	}
+	
+	
+	
+	public static void expand(TIntArrayList dest, CharSequence wordForm, CharSequence lemma) {
+		dest.resetQuick();
 		int maxLength = Math.max(wordForm.length(), lemma.length());
 		
 		for(int i = 0; i < maxLength; i++) {
