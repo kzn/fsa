@@ -44,6 +44,11 @@ public class WalkFSABoolean extends BaseWalkFSA {
 		}
 		
 		public WalkFSABoolean build() {
+			fsa.dest.trimToSize();
+			fsa.finals.trimToSize();
+			fsa.labels.trimToSize();
+			fsa.stateEnd.trimToSize();
+			fsa.stateStart.trimToSize();
 			return fsa;
 		}
 	}

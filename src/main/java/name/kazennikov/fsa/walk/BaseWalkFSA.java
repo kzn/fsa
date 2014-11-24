@@ -1,9 +1,11 @@
 package name.kazennikov.fsa.walk;
 
+import java.io.Serializable;
+
 import gnu.trove.list.array.TIntArrayList;
 import name.kazennikov.fsa.Constants;
 
-public class BaseWalkFSA {
+public class BaseWalkFSA implements Serializable {
 	TIntArrayList dest = new TIntArrayList();
 	TIntArrayList labels = new TIntArrayList();
 	
