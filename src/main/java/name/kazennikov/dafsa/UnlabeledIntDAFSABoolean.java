@@ -4,7 +4,7 @@ import gnu.trove.list.array.TByteArrayList;
 import name.kazennikov.dafsa.AbstractIntDAFSA.State;
 import name.kazennikov.fsa.IntFSABooleanEventHandler;
 
-public class IntDAFSABooleanUnlabeled extends AbstractIntDAFSAUnlabeled {
+public class UnlabeledIntDAFSABoolean extends AbstractUnlabeledIntDAFSA {
 	
 	TByteArrayList finals;
 	

@@ -9,13 +9,14 @@ package name.kazennikov.fsa;
  * @author Anton Kazennikov
  *
  */
-public interface IntFSAEventHandler {
+public interface UnlabeledIntFSAEventHandler {
+
 	/**
 	 * Announce that that current state changed to given state number.
 	 * This also resets the final value stored by events processor
 	 * @param state state number
 	 */
-	public void startState(int state);
+	public void startState(int state, int date);
 
 	/**
 	 * Set final value of the current state
@@ -25,16 +26,15 @@ public interface IntFSAEventHandler {
 	/**
 	 * Add transition to current state
 	 * 
-	 * @param label input label
 	 * @param destState destination state number
 	 */
-	public void addTransition(int label, int destState);
+	public void addTransition(int destState);
 	
 	/**
 	 * Announce end of current state - at this point current state is fully built and
 	 * will be not changed by the writing algorithm
 	 */
 	public void endState();
-	
+
 
 }

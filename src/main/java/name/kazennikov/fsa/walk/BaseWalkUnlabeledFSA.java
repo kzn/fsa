@@ -1,29 +1,24 @@
 package name.kazennikov.fsa.walk;
 
-import java.io.Serializable;
-
 import gnu.trove.list.array.TIntArrayList;
 import name.kazennikov.fsa.Constants;
 
-public class BaseWalkFSA implements Serializable {
+public class BaseWalkUnlabeledFSA {
 	TIntArrayList dest = new TIntArrayList();
-	TIntArrayList labels = new TIntArrayList();
+	TIntArrayList data = new TIntArrayList();
 	
 	TIntArrayList stateStart = new TIntArrayList();
 	
 	
 	public int next(int src, int input) {
 		for(int i = stateStart(src); i < stateEnd(src); i++) {
-			if(labels.get(i) == input)
-				return dest.get(i);
+			int dest = this.dest.get(i);
+			if(data.get(dest) == input)
+				return dest;
 		}
 		
 		return Constants.INVALID_STATE;
-	}
-	
-	public int label(int transitionIndex) {
-		return labels.get(transitionIndex);
-	}
+	}	
 	
 	public int dest(int transitionIndex) {
 		return dest.get(transitionIndex);
@@ -33,11 +28,16 @@ public class BaseWalkFSA implements Serializable {
 		return stateStart.get(state);
 	}
 	
+	public int data(int state) {
+		return this.data.get(state);
+	}
+	
 	public int stateEnd(int state) {
 		state++;
 		return state == stateStart.size()? dest.size() : stateStart.get(state);
 	}
 		
 	
+
 
 }

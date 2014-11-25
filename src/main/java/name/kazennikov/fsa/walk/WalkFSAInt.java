@@ -49,7 +49,7 @@ public class WalkFSAInt extends BaseWalkFSA {
 
 		@Override
 		public void endState() {
-			fsa.stateEnd.add(fsa.labels.size());
+			
 		}
 
 		@Override

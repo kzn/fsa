@@ -439,4 +439,17 @@ public abstract class AbstractIntDAFSA extends IntDaciukAlgoIndexed {
 		toDot(pw);
 		pw.close();
 	}
+	
+
+	public int transitionCount() {
+		int count = 0;
+		for(State s : states) {
+			count += s.next.size();
+		}
+		
+		return count;
+
+	}
+
+
 }

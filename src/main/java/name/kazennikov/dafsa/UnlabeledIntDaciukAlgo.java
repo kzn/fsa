@@ -8,19 +8,23 @@ import name.kazennikov.fsa.Constants;
  * Generic algorithm for constructing minimal DAFSA (deterministic acyclic finite state automata) 
  * or minimial tries.
  * 
+ * This variant uses unlabeled DAFSA. Data (characters) is stored state themselves and transitions 
+ * only link states together. This is somewhat more natural that data is stored in the states 
+ * explicitly, not in some opaque ways in the transitions. 
+ * 
  * @author Anton Kazennikov
  *
  */
-public abstract class IntDaciukAlgoUnlabeled {
+public abstract class UnlabeledIntDaciukAlgo {
 	/**
-	 * Find matching outbound transition for given state
+	 * Find next state of given state with given data
 	 * 
 	 * @param state source state
-	 * @param input label
+	 * @param data data value
 	 * 
 	 * @return dest state, or -1, if no such transition exists
 	 */
-	public abstract int getNext(int state, int input);
+	public abstract int getNext(int state, int data);
 	
 	/**
 	 * Checks a state for confluence (if in has more that 1 inbound transitions)
@@ -46,19 +50,24 @@ public abstract class IntDaciukAlgoUnlabeled {
 	/**
 	 * Adds a new state to the automaton
 	 * 
+	 * @data data of the state
 	 * @return index of the new state
 	 */
 	public abstract int addState(int data);
 	
 	
-	public abstract void removeNext(int src, int label);
 	/**
-	 * Adds a transition from src to dest on given label, if
-	 * a transition from src with given label already exists, then change it
-	 * to new destination state.
+	 * Remove transition from given state to next state with given data
+	 * @param state source state
+	 * @param data target state data
+	 */
+	public abstract void removeNext(int state, int data);
+	
+	
+	/**
+	 * Adds a transition from src to dest.
 	 * 
-	 * @param src source state
-	 * @param label transition label 
+	 * @param src source state 
 	 * @param dest destination state
 	 * 
 	 * @return true, if state has changed

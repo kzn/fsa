@@ -10,6 +10,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.PriorityQueue;
 
+import name.kazennikov.dafsa.AbstractIntDAFSA.State;
 import name.kazennikov.fsa.Constants;
 
 /**
@@ -25,7 +26,7 @@ import name.kazennikov.fsa.Constants;
  * @author Anton Kazennikov
  *
  */
-public abstract class AbstractIntDAFSAUnlabeled extends IntDaciukAlgoUnlabeled {
+public abstract class AbstractUnlabeledIntDAFSA extends UnlabeledIntDaciukAlgo {
 	/**
 	 * Basic FSA state. Doesn't store the final value.
 	 * The value is stored in the DAFSA itself
@@ -288,7 +289,7 @@ public abstract class AbstractIntDAFSAUnlabeled extends IntDaciukAlgoUnlabeled {
 	});
 	int startState;
 	
-	public AbstractIntDAFSAUnlabeled() {
+	public AbstractUnlabeledIntDAFSA() {
 		initFinals();
 		startState = addState(-2);
 	}
@@ -459,4 +460,19 @@ public abstract class AbstractIntDAFSAUnlabeled extends IntDaciukAlgoUnlabeled {
 		toDot(pw);
 		pw.close();
 	}
+	
+	public int transitionCount() {
+		int count = 0;
+		for(State s : states) {
+			for(int i = 0; i < s.next.size(); i++) {
+				if(s.next.get(i) == Constants.INVALID_STATE)
+					continue;
+				count++;
+			}
+		}
+		
+		return count;
+
+	}
+
 }
