@@ -1,6 +1,8 @@
 package name.kazennikov.fsa.walk;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 import gnu.trove.list.array.TIntArrayList;
 import name.kazennikov.fsa.Constants;
@@ -37,7 +39,5 @@ public class BaseWalkFSA implements Serializable {
 		state++;
 		return state == stateStart.size()? dest.size() : stateStart.get(state);
 	}
-		
-	
 
 }
