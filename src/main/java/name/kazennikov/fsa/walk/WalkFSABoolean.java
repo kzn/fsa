@@ -6,17 +6,19 @@ import name.kazennikov.fsa.Constants;
 import name.kazennikov.fsa.IntFSABooleanEventHandler;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.List;
 
 public class WalkFSABoolean extends BaseWalkFSA {
 
-	TIntHashSet finals = new TIntHashSet();
-    private final long serialVersionUUID = 1L;
+	//TIntHashSet finals = new TIntHashSet();
+    BitSet finals = new BitSet();
+    private final long serialVersionUUID = 2L;
 
 
 		
 	public boolean isFinalState(int state) {
-		return finals.contains(state);
+		return finals.get(state);
 	}
 	
 	
@@ -33,7 +35,7 @@ public class WalkFSABoolean extends BaseWalkFSA {
 		@Override
 		public void setFinal() {
 			if(isFinal)
-				fsa.finals.add(state);
+				fsa.finals.set(state);
 		}
 
 		@Override
@@ -53,7 +55,6 @@ public class WalkFSABoolean extends BaseWalkFSA {
 		
 		public WalkFSABoolean build() {
 			fsa.dest.trimToSize();
-			fsa.finals.trimToSize();
 			fsa.labels.trimToSize();
 			fsa.stateStart.trimToSize();
 			return fsa;
@@ -103,7 +104,7 @@ public class WalkFSABoolean extends BaseWalkFSA {
      */
     public void collectAnnotations(int state, TIntArrayList data, boolean passedAnnotChar, TIntArrayList annots, int sepValue) {
 
-        if(finals.contains(state)) {
+        if(finals.get(state)) {
             for(int i = 0; i < data.size(); i++) {
                 annots.add(data.get(i));
             }
