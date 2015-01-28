@@ -38,7 +38,7 @@ public class IntDAFSABoolean extends AbstractIntDAFSA {
 		finals.add((byte)0);
 	}
 	
-	boolean finalValue;
+	boolean finalValue = true;
 	
 	public void setFinalValue(boolean finalValue) {
 		this.finalValue = finalValue;
