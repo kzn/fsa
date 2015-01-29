@@ -11,17 +11,11 @@ import java.util.List;
 
 public class WalkFSABoolean extends BaseWalkFSA {
 
-	//TIntHashSet finals = new TIntHashSet();
     BitSet finals = new BitSet();
     private final long serialVersionUUID = 2L;
+    public static final int ANNOTATION_LABEL = 0;
 
 
-		
-	public boolean isFinalState(int state) {
-		return finals.get(state);
-	}
-	
-	
 	public static class Builder implements IntFSABooleanEventHandler {
 		WalkFSABoolean fsa = new WalkFSABoolean();
 		boolean isFinal;
@@ -59,57 +53,85 @@ public class WalkFSABoolean extends BaseWalkFSA {
 			fsa.stateStart.trimToSize();
 			return fsa;
 		}
+
+
 	}
 
+    /**
+     * Check if state have an annotation transitiion
+     * (transition with annotation label)
+     * @param state state to check
+     */
     public boolean hasAnnotStart(int state) {
-        return next(state, 0) != Constants.INVALID_STATE;
+        return next(state, ANNOTATION_LABEL) != Constants.INVALID_STATE;
+    }
+
+    public boolean isFinalState(int state) {
+        return finals.get(state);
     }
 
     /**
-     * Collect all annotations starting at the state
-     * @param state
+     * Collect annotations starting at the state
+     * @param state start state
+     * @param needSep true if needed a separator to output list
+     * @param sepValue separator value
+     *
+     * @return annotation data
      */
-    public TIntArrayList collectAnnotationsSimple(int state, int sepValue) {
-        //List<int[]> annots = new ArrayList<int[]>();
+    public TIntArrayList collectAnnotationsSimple(int state, boolean needSep, int sepValue) {
         TIntArrayList annots = new TIntArrayList();
 
         if(!hasAnnotStart(state))
             return annots;
 
         TIntArrayList data = new TIntArrayList();
-        collectAnnotations(next(state, 0), data, true, annots, sepValue);
+        collectAnnotations(next(state, 0), data, true, annots, needSep, sepValue);
+        return annots;
+    }
+
+    public TIntArrayList collectAnnotationsSimple(int state) {
+        return collectAnnotationsSimple(state, false, 0);
+    }
+
+
+
+    /**
+     * Collect annotations starting at this (or at any descendent) state
+     * @param state start state
+     * @param annots output list for annotations
+     * @param addSep if true, add specified separator to the output list
+     * @param sepValue separator value for output list
+     *
+     * @return annotation data
+     */
+    public TIntArrayList collectAnnotations(int state, TIntArrayList annots, boolean addSep, int sepValue) {
+        TIntArrayList data = new TIntArrayList();
+        collectAnnotations(state, data, false, annots, addSep, sepValue);
         return annots;
     }
 
 
 
     /**
-     * Collect all annotations starting at this (or descendents) state
+     * Recursively collect annotation from the FSA
      * @param state start state
-     * @param annots output list for annotations
-     */
-    public void collectAnnotations(int state, TIntArrayList annots, int sepValue) {
-        TIntArrayList data = new TIntArrayList();
-        collectAnnotations(state, data, false, annots, sepValue);
-    }
-
-
-
-    /**
-     * Recursively collects annotation from the FSA
-     * @param state state
      * @param data current annotation data
-     * @param passedAnnotChar true if the walker passed the annotation char
+     * @param passedAnnotChar flag of passing the annotation char in the FSA
      * @param annots output list for the annotations
+     * @param addSep if true, add specified separator to the output list
+     * @param sepValue separator value for output list
+     *
+     * @return annotation data
      */
-    public void collectAnnotations(int state, TIntArrayList data, boolean passedAnnotChar, TIntArrayList annots, int sepValue) {
+    public TIntArrayList collectAnnotations(int state, TIntArrayList data, boolean passedAnnotChar, TIntArrayList annots, boolean addSep, int sepValue) {
 
         if(finals.get(state)) {
             for(int i = 0; i < data.size(); i++) {
                 annots.add(data.get(i));
             }
 
-            annots.add(sepValue);
+            if(addSep)
+                annots.add(sepValue);
         }
 
         int start = stateStart.get(state);
@@ -119,11 +141,15 @@ public class WalkFSABoolean extends BaseWalkFSA {
             int input = labels.get(start);
             if(passedAnnotChar)
                 data.add(labels.get(start));
-            collectAnnotations(dest.get(start), data, input == 0? true : passedAnnotChar, annots, sepValue);
+
+            collectAnnotations(dest.get(start), data, input == 0? true : passedAnnotChar, annots, addSep, sepValue);
+
             if(passedAnnotChar)
                 data.removeAt((data.size() - 1));
             start++;
         }
+
+        return annots;
     }
 
 }
