@@ -1,6 +1,10 @@
 package name.kazennikov.fsa.walk;
 
+import cern.colt.GenericSorting;
+import cern.colt.Swapper;
+import cern.colt.function.IntComparator;
 import gnu.trove.list.array.TIntArrayList;
+import name.kazennikov.dafsa.TroveUtils;
 import name.kazennikov.fsa.Constants;
 
 public class BaseWalkUnlabeledFSA {
@@ -36,6 +40,25 @@ public class BaseWalkUnlabeledFSA {
 		state++;
 		return state == stateStart.size()? dest.size() : stateStart.get(state);
 	}
+
+    public void sortTransitions() {
+        for(int i = 0; i < stateStart.size(); i++) {
+            int start = stateStart(i);
+            int end = stateEnd(i);
+
+            GenericSorting.quickSort(start, end, new IntComparator() {
+                @Override
+                public int compare(int i, int i2) {
+                    return data.get(i) - data.get(i2);
+                }
+            }, new Swapper() {
+                @Override
+                public void swap(int i, int i2) {
+                    TroveUtils.swap(dest, i, i2);
+                }
+            });
+        }
+    }
 		
 	
 

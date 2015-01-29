@@ -1,5 +1,6 @@
 package name.kazennikov.dafsa;
 
+import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TCharArrayList;
 import gnu.trove.list.array.TIntArrayList;
 
@@ -34,6 +35,12 @@ public class TroveUtils {
 			dest.add(destSymbol);
 		}
 	}
+
+    public static void swap(TIntList l, int i, int j) {
+        int t = l.get(i);
+        l.set(i, l.get(j));
+        l.set(j, t);
+    }
 
 
 }

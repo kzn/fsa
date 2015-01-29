@@ -1,7 +1,11 @@
 package name.kazennikov.fsa.walk;
 
+import cern.colt.GenericSorting;
+import cern.colt.Swapper;
+import cern.colt.function.IntComparator;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.set.hash.TIntHashSet;
+import name.kazennikov.dafsa.TroveUtils;
 import name.kazennikov.fsa.Constants;
 import name.kazennikov.fsa.IntFSABooleanEventHandler;
 
@@ -51,6 +55,8 @@ public class WalkFSABoolean extends BaseWalkFSA {
 			fsa.dest.trimToSize();
 			fsa.labels.trimToSize();
 			fsa.stateStart.trimToSize();
+            fsa.sortTransitions();
+
 			return fsa;
 		}
 
