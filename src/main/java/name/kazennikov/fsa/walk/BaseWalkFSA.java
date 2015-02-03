@@ -12,6 +12,8 @@ import name.kazennikov.dafsa.TroveUtils;
 import name.kazennikov.fsa.Constants;
 
 public class BaseWalkFSA implements Serializable {
+	private static final long serialVersionUID = 1L;
+	
 	TIntArrayList dest = new TIntArrayList();
 	TIntArrayList labels = new TIntArrayList();
 	
@@ -67,6 +69,10 @@ public class BaseWalkFSA implements Serializable {
                 }
             });
         }
+    }
+    
+    public int size() {
+    	return stateStart.size();
     }
 
 }
