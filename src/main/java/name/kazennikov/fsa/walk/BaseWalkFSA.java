@@ -7,6 +7,7 @@ import java.util.List;
 import cern.colt.GenericSorting;
 import cern.colt.Swapper;
 import cern.colt.function.IntComparator;
+import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
 import name.kazennikov.dafsa.TroveUtils;
 import name.kazennikov.fsa.Constants;
@@ -74,5 +75,44 @@ public class BaseWalkFSA implements Serializable {
     public int size() {
     	return stateStart.size();
     }
+
+    public TIntArrayList walk(int state, CharSequence s, int start, int end) {
+        TIntArrayList res = new TIntArrayList();
+
+        res.add(state);
+
+        for (int i = start; i < end; i++) {
+            int next = next(state, (int) s.charAt(i));
+
+            if (next == -1)
+                break;
+
+            res.add(next);
+
+            state = next;
+        }
+
+        return res;
+    }
+
+    public TIntArrayList walk(int state, TIntList s, int start, int end) {
+        TIntArrayList res = new TIntArrayList();
+
+        res.add(state);
+
+        for (int i = start; i < end; i++) {
+            int next = next(state, (int) s.get(i));
+
+            if (next == -1)
+                break;
+
+            res.add(next);
+
+            state = next;
+        }
+
+        return res;
+    }
+
 
 }
