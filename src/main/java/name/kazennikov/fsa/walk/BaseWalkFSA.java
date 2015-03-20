@@ -76,8 +76,7 @@ public class BaseWalkFSA implements Serializable {
     	return stateStart.size();
     }
 
-    public TIntArrayList walk(int state, CharSequence s, int start, int end) {
-        TIntArrayList res = new TIntArrayList();
+    public TIntArrayList walk(TIntArrayList res, int state, CharSequence s, int start, int end) {
 
         res.add(state);
 
@@ -93,6 +92,10 @@ public class BaseWalkFSA implements Serializable {
         }
 
         return res;
+    }
+
+    public TIntArrayList walk(int state, CharSequence s, int start, int end) {
+        return walk(new TIntArrayList(), state, s, start, end);
     }
 
     public TIntArrayList walk(int state, TIntList s, int start, int end) {
