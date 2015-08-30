@@ -2,7 +2,6 @@ package name.kazennikov.dafsa;
 
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
-import gnu.trove.queue.TIntQueue;
 import name.kazennikov.trove.TIntDeque;
 
 import java.lang.reflect.Array;
@@ -152,8 +151,7 @@ public class CompactIntTrie {
 			TIntDeque q = queueFor(blockSize);
 
 			if(q.isEmpty()) {
-				int tr = 1 << blockSize;
-				int dataSize = 1 + tr*2;
+				int dataSize = bucketSize(blockSize);
 				ensureFree(dataSize);
 
 				int ptr = unallocPtr;
@@ -171,7 +169,13 @@ public class CompactIntTrie {
 
 
 
-		public static int blockSize(int size) {
+
+
+		public int getUnallocPtr() {
+			return unallocPtr;
+		}
+
+		public static int bucket(int size) {
 			if(size == 0)
 				return 0;
 
@@ -184,8 +188,9 @@ public class CompactIntTrie {
 			return log + 1;
 		}
 
-		public int getUnallocPtr() {
-			return unallocPtr;
+		public static int bucketSize(int bucket) {
+			int tr = bucket > 0? 1 << (bucket - 1) : 0;
+			return 1 + tr*2;
 		}
 
 
@@ -229,9 +234,11 @@ public class CompactIntTrie {
 	 */
 	public int addState(int reserve) {
 		stateCount++;
-		int pos = m.alloc(m.blockSize(reserve)); // header
+		int bucket = m.bucket(reserve);
+		int reserved = m.bucketSize(bucket);
+		int pos = m.alloc(bucket); // header
 
-		m.data[pos] = 0;
+		m.data[pos] = -reserve;
 //		for(int i = 0; i < reserve; i++) {
 //			m.data[pos + 1 + 2*i] = RESERVED; // set label to reserve
 //		}
@@ -254,10 +261,16 @@ public class CompactIntTrie {
 	public int addTransition(int parentState, int state, int label, int next) {
 
 		int trCount = m.data[state];
-		int oldBlockSize = m.blockSize(trCount);
-		int newBlockSize = m.blockSize(trCount + 1);
+		int oldBlockSize = m.bucket(Math.abs(trCount));
+		int newBlockSize = m.bucket(Math.abs(trCount) + 1);
 		// sameBlock
-		if(oldBlockSize == newBlockSize) {
+		if(oldBlockSize == newBlockSize || trCount < 0) {
+
+			if(trCount < 0) {
+				m.data[state] = 0;
+				trCount = 0;
+			}
+
 			m.data[state]++;
 			m.data[state + 1 + trCount *2] = label;
 			m.data[state + 1 + trCount *2 + 1] = next;
@@ -374,20 +387,17 @@ public class CompactIntTrie {
 	public static void main(String[] args) {
 		CompactIntTrie trie = new CompactIntTrie();
 		TIntArrayList l = new TIntArrayList();
-		TroveUtils.expand(l, "foo");
-		l.add(0);
-		trie.add(l);
-		TroveUtils.expand(l, "foo");
-		System.out.println(trie.contains(l));
+		String[] set = new String[] {"foobar", "foo", "baz", "quuz", "abc", "def"};
 
-		TroveUtils.expand(l, "foobar");
-		l.add(0);
-		trie.add(l);
-		TroveUtils.expand(l, "foo");
-		System.out.println(trie.contains(l));
-		TroveUtils.expand(l, "foobar");
-		System.out.println(trie.contains(l));
-		System.out.println(trie.stateCount);
+		for(String s : set) {
+			TroveUtils.expand(l, s);
+			l.add(0);
+			trie.add(l);
+		}
+		System.out.printf("Size: %d, datasize: %d%n", trie.size(), trie.dataSize());
+
+
+
 
 		/*TroveUtils.expand(l, "foobar");
 		System.out.println(trie.contains(l));
