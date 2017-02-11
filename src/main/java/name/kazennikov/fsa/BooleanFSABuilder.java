@@ -31,4 +31,8 @@ public class BooleanFSABuilder {
         fsa.emit(builder);
         return builder.build();
     }
+
+	public IntDAFSABoolean fsa() {
+		return fsa;
+	}
 }
