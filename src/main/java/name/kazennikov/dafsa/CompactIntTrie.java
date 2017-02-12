@@ -16,124 +16,53 @@ public class CompactIntTrie {
 	public static final int RESERVED = Integer.MIN_VALUE;
 
 
-	/*
-		2i - label
-		2i+1 - next state
-	 */
-	TrieMemory m;
-	int nextState = 0;
-	int start;
-	int stateCount;
+    /**
+     * Chunked memory allocator.
+     * Splits given memory area into chunks nd tracks
+     * allocation, so the chunks could be freed and reused.
+     *
+     *
+     */
+	public static class ChunkAllocator {
 
-
-
-	public static class Memory {
-		int data[];
-		TIntArrayList[] blocks = new TIntArrayList[16];
-		int unallocPtr;
-
-		public static int blockSize(int size) {
-			int log = 32 - Integer.numberOfLeadingZeros(size);
-
-			// power of two
-			if(Integer.numberOfTrailingZeros(size) == log - 1)
-				return log;
-
-			return log + 1;
-		}
-
-		public Memory(int size) {
-			data = new int[1 << blockSize(size)];
-			unallocPtr = 0;
-
-		}
-
-
-		public TIntArrayList getBlocksFor(int size) {
-			if(blocks.length < size) {
-				int oldSize = blocks.length;
-				blocks = realloc(blocks, TIntArrayList.class, size + 1);
-
-				for(int i = oldSize; i < blocks.length; i++) {
-					blocks[i] = new TIntArrayList(16);
-				}
-			}
-
-			return blocks[size];
-		}
-
-		public int getBlock(int size) {
-			int blockSize = blockSize(size);
-			return getBlockInternal(blockSize);
-		}
-
-		public int getBlockInternal(int blockSize) {
-			TIntArrayList l = getBlocksFor(blockSize);
-			int intSize = 1 << blockSize;
-
-			// if allocating largest block
-			if(l.isEmpty() && blockSize + 1 == blocks.length) {
-
-
-				// allocate from free space
-				if(data.length - unallocPtr > intSize) {
-					int newLength = data.length;
-					while(newLength - unallocPtr < intSize) {
-						newLength = newLength + (newLength >> 2);
-					}
-
-					data = realloc(data, newLength);
-				}
-
-				l.add(unallocPtr);
-				int block = unallocPtr;
-				unallocPtr += intSize;
-				return block;
-			} else if(l.isEmpty()) {
-
-				int block = getBlockInternal(blockSize + 1);
-				l.add(block + blockSize); // as power of two
-
-				// split it
-				return block;
-			}
-
-			int block = l.get(l.size() - 1);
-			l.removeAt(l.size() - 1);
-			return block;
-		}
-
-
-	}
-
-
-
-	public static class TrieMemory {
-
-
+        // actual data
 		int[] data;
+		// pointer to unallocated area
 		int unallocPtr;
 
+		// buckets of free chunks
 		TIntDeque[] q = new TIntDeque[0];
 
-		public TrieMemory(int size) {
+
+
+		public ChunkAllocator(int size) {
 			data = new int[size];
 		}
 
-		public TIntDeque queueFor(int blockSize) {
+        /**
+         * Get queue of free chunks of bucket
+         * @param bucketIndex index of the bucket
+         * @return
+         */
+		public TIntDeque queueFor(int bucketIndex) {
 
-			if(blockSize >= q.length) {
+			if(bucketIndex >= q.length) {
 				int oldSize = q.length;
-				q = realloc(q, TIntDeque.class, blockSize + 1);
+				q = realloc(q, TIntDeque.class, bucketIndex + 1);
 
 				for(int i = oldSize; i < q.length; i++) {
 					q[i] = new TIntDeque(16);
 				}
 			}
 
-			return q[blockSize];
+			return q[bucketIndex];
 		}
 
+        /**
+         * Ensure of that allocation area has enough free space for a new block
+         *
+         * @param dataSize size of the requested block
+         */
 		public void ensureFree(int dataSize) {
 			if(data.length - unallocPtr > dataSize)
 				return;
@@ -147,63 +76,95 @@ public class CompactIntTrie {
 			data = realloc(data, newSize);
 		}
 
-		public int alloc(int blockSize) {
-			TIntDeque q = queueFor(blockSize);
 
-			if(q.isEmpty()) {
-				int dataSize = bucketSize(blockSize);
-				ensureFree(dataSize);
+        /**
+         * Allocate a chunk
+         * @param bucketIndex requested bucketIndex
+         * @return block pointer
+         */
+        public int alloc(int bucketIndex) {
+            TIntDeque q = queueFor(bucketIndex);
 
-				int ptr = unallocPtr;
-				unallocPtr += dataSize;
-				return ptr;
-			} else {
-				return q.pollFirst();
-			}
-		}
+            if(!q.isEmpty()) {
+                return q.pollFirst();
+            }
 
-		public void free(int ptr, int blockSize) {
-			TIntDeque q = queueFor(blockSize);
+            int dataSize = bucketSize(bucketIndex);
+
+
+            ensureFree(dataSize);
+
+            int ptr = unallocPtr;
+            unallocPtr += dataSize;
+
+            return ptr;
+        }
+
+        /**
+         * Free (deallocate) a chunk
+         * @param ptr chunk pointer
+         * @param bucketIndex bucket index
+         */
+		public void free(int ptr, int bucketIndex) {
+			TIntDeque q = queueFor(bucketIndex);
 			q.addLast(ptr);
 		}
-
-
-
 
 
 		public int getUnallocPtr() {
 			return unallocPtr;
 		}
 
-		public static int bucket(int size) {
-			if(size == 0)
-				return 0;
 
-			int log = 32 - Integer.numberOfLeadingZeros(size);
+        /**
+         * Bucket size in ints
+         * @param bucketIndex bucket index
+         * @return
+         */
+		public int bucketSize(int bucketIndex) {
+            int trCount = 1 << (bucketIndex - 1);
+            return 1 + trCount*2;
+        }
 
-			// power of two
-			if(Integer.numberOfTrailingZeros(size) == log - 1)
-				return log;
+        /**
+         * Bucket index by data size
+         * @param dataSize
+         * @return
+         */
+        public static int bucket(int dataSize) {
+            if(dataSize == 0)
+                return 0;
 
-			return log + 1;
-		}
+            int log = 32 - Integer.numberOfLeadingZeros(dataSize);
 
-		public static int bucketSize(int bucket) {
-			int tr = bucket > 0? 1 << (bucket - 1) : 0;
-			return 1 + tr*2;
-		}
+            // power of two
+            if(Integer.numberOfTrailingZeros(dataSize) == log - 1)
+                return log;
 
-
-
+            return log + 1;
+        }
 
 
-	}
 
-	//List<Chunk> blocks = new ArrayList<>();
 
-	public CompactIntTrie() {
-		m = new TrieMemory(256);
-		start = addState(0);
+
+
+    }
+
+
+    /*
+        2i - label
+        2i+1 - next state
+     */
+    ChunkAllocator m;
+
+    int start;
+    int stateCount;
+
+
+    public CompactIntTrie() {
+		m = new ChunkAllocator(256);
+		start = addState(true);
 	}
 
 	public static int[] realloc(int[] a, int newLength) {
@@ -227,21 +188,20 @@ public class CompactIntTrie {
 
 
 
-	/**
+
+
+
+    /**
 	 * Add new empty state
-	 * @param reserve number of reserved transitions
+     * @param reserve should we reserve memory for a transition? true on known non-leaf states
 	 * @return state index
 	 */
-	public int addState(int reserve) {
+	public int addState(boolean reserve) {
 		stateCount++;
-		int bucket = m.bucket(reserve);
-		int reserved = m.bucketSize(bucket);
+		int bucket = ChunkAllocator.bucket(reserve? 1 : 0);
 		int pos = m.alloc(bucket); // header
 
-		m.data[pos] = -reserve;
-//		for(int i = 0; i < reserve; i++) {
-//			m.data[pos + 1 + 2*i] = RESERVED; // set label to reserve
-//		}
+		m.data[pos] = reserve? RESERVED : 0;
 
 		return pos;
 	}
@@ -261,12 +221,13 @@ public class CompactIntTrie {
 	public int addTransition(int parentState, int state, int label, int next) {
 
 		int trCount = m.data[state];
-		int oldBlockSize = m.bucket(Math.abs(trCount));
-		int newBlockSize = m.bucket(Math.abs(trCount) + 1);
-		// sameBlock
-		if(oldBlockSize == newBlockSize || trCount < 0) {
+		int oldBucket = ChunkAllocator.bucket(Math.abs(trCount));
+		int newBucket = ChunkAllocator.bucket(Math.abs(trCount) + 1);
 
-			if(trCount < 0) {
+		// same bucket
+		if(oldBucket == newBucket || trCount == RESERVED) {
+
+			if(trCount == RESERVED) {
 				m.data[state] = 0;
 				trCount = 0;
 			}
@@ -276,13 +237,15 @@ public class CompactIntTrie {
 			m.data[state + 1 + trCount *2 + 1] = next;
 			return state;
 		}
+
+
 		// failed to find reserved transitions, relocating the state
-		int newState =  m.alloc(newBlockSize);
+		int newState =  m.alloc(newBucket);
 		m.data[newState] = trCount + 1; // inc transition count
 		System.arraycopy(m.data, state + 1, m.data, newState + 1, trCount*2); // relocateState
 		m.data[newState + trCount*2 + 1] = label;
 		m.data[newState + trCount*2 + 1 + 1] = next;
-		m.free(state, oldBlockSize);
+		m.free(state, oldBucket);
 
 		// change start if necessary
 		if(state == start) {
@@ -351,7 +314,7 @@ public class CompactIntTrie {
 
 	protected int addSuffix(TIntList l, int pos, int prevState,int state) {
 		while(pos < l.size()) {
-			int next = addState(pos != l.size() - 1? 1 : 0);
+			int next = addState(pos != l.size() - 1);
 			state = addTransition(prevState, state, l.get(pos), next); // reduce relocations by reserving transitions for non-last states
 			prevState = state;
 			state = next;
@@ -383,27 +346,8 @@ public class CompactIntTrie {
 		return m.data.length;
 	}
 
-
-	public static void main(String[] args) {
-		CompactIntTrie trie = new CompactIntTrie();
-		TIntArrayList l = new TIntArrayList();
-		String[] set = new String[] {"foobar", "foo", "baz", "quuz", "abc", "def"};
-
-		for(String s : set) {
-			TroveUtils.expand(l, s);
-			l.add(0);
-			trie.add(l);
-		}
-		System.out.printf("Size: %d, datasize: %d%n", trie.size(), trie.dataSize());
-
-
-
-
-		/*TroveUtils.expand(l, "foobar");
-		System.out.println(trie.contains(l));
-		TroveUtils.expand(l, "fo");
-		System.out.println(trie.contains(l));*/
-
-	}
+	public int usedSize() {
+	    return m.data.length - m.unallocPtr;
+    }
 
 }
