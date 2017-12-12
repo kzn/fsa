@@ -282,6 +282,20 @@ public class CompactIntTrie {
 		return -1;
 	}
 
+	public int trCount(int state) {
+	    return m.data[state];
+    }
+
+    public int trLabel(int state, int index) {
+	    int ptr = state + 1 + index * 2;
+	    return m.data[ptr];
+    }
+
+    public int trNext(int state, int index) {
+        int ptr = state + 1 + index * 2;
+        return m.data[ptr + 1];
+    }
+
 	/**
 	 *
 	 * Add word to the trie. It is the caller responsibility to establish such protocol that guarantee
