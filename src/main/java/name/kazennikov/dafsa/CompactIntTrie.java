@@ -350,4 +350,8 @@ public class CompactIntTrie {
 	    return m.data.length - m.unallocPtr;
     }
 
+    public int start() {
+	    return start;
+    }
+
 }
