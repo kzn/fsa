@@ -1,7 +1,12 @@
 package name.kazennikov.dafsa;
 
+import cern.colt.GenericSorting;
+import cern.colt.Swapper;
+import cern.colt.function.IntComparator;
+import gnu.trove.iterator.TIntIterator;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
+import gnu.trove.set.hash.TIntHashSet;
 import name.kazennikov.trove.TIntDeque;
 
 import java.lang.reflect.Array;
@@ -366,6 +371,39 @@ public class CompactIntTrie {
 
     public int start() {
 	    return start;
+    }
+
+    public void sortStateTransitions(int state, IntComparator c) {
+        GenericSorting.quickSort(state + 1, state + 1 + m.data[state], c, new Swapper() {
+            @Override
+            public void swap(int i, int i1) {
+                int tmp = m.data[i];
+                m.data[i] = m.data[i1];
+                m.data[i1] = tmp;
+            }
+        });
+    }
+
+    public void sortTransitions(IntComparator c) {
+        TIntHashSet states = new TIntHashSet();
+        TIntDeque q = new TIntDeque();
+        q.add(start);
+
+        while(!q.isEmpty()) {
+            int state = q.pop();
+
+            if(!states.add(state))
+                continue;
+
+            for(int i = 0; i < trCount(state); i++) {
+                q.add(trNext(state, i));
+            }
+        }
+
+        TIntIterator it = states.iterator();
+        while(it.hasNext()) {
+            sortStateTransitions(it.next(), c);
+        }
     }
 
 }
