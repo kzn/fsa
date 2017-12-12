@@ -374,12 +374,22 @@ public class CompactIntTrie {
     }
 
     public void sortStateTransitions(int state, IntComparator c) {
-        GenericSorting.quickSort(state + 1, state + 1 + m.data[state], c, new Swapper() {
+        GenericSorting.quickSort(0, m.data[state], new IntComparator() {
+            @Override
+            public int compare(int i, int i1) {
+                return c.compare(m.data[i*2], m.data[i1*2]);
+            }
+        }, new Swapper() {
             @Override
             public void swap(int i, int i1) {
-                int tmp = m.data[i];
-                m.data[i] = m.data[i1];
-                m.data[i1] = tmp;
+                int tmp1 = m.data[i*2];
+                int tmp2 = m.data[i*2 + 1];
+
+                m.data[i*2] = m.data[i1];
+                m.data[i*2 + 1] = m.data[i1 + 1];
+
+                m.data[i1*2] = tmp1;
+                m.data[i1*2 + 1] = tmp2;
             }
         });
     }
