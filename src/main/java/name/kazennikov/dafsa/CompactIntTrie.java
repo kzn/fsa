@@ -377,19 +377,19 @@ public class CompactIntTrie {
         GenericSorting.quickSort(0, m.data[state], new IntComparator() {
             @Override
             public int compare(int i, int i1) {
-                return c.compare(m.data[i*2], m.data[i1*2]);
+                return c.compare(m.data[state + 1 + i*2], m.data[state + 1 + i1*2]);
             }
         }, new Swapper() {
             @Override
             public void swap(int i, int i1) {
-                int tmp1 = m.data[i*2];
-                int tmp2 = m.data[i*2 + 1];
+                int tmp1 = m.data[state + 1 + i*2];
+                int tmp2 = m.data[state + 1 + i*2 + 1];
 
-                m.data[i*2] = m.data[i1];
-                m.data[i*2 + 1] = m.data[i1 + 1];
+                m.data[state + 1 + i*2] = m.data[state + 1 + i1*2];
+                m.data[state + 1 + i*2 + 1] = m.data[state + 1 + i1*2 + 1];
 
-                m.data[i1*2] = tmp1;
-                m.data[i1*2 + 1] = tmp2;
+                m.data[state + 1 + i1*2] = tmp1;
+                m.data[state + 1 + i1*2 + 1] = tmp2;
             }
         });
     }
